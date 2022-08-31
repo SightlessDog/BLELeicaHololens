@@ -48,39 +48,6 @@ namespace TestApp.Sample
                 #endif
             }
         }
-        
-        /// <summary>
-        /// Called to make a connection with the BTLE device. 
-        /// </summary>
-        /// <returns></returns>
-        public bool Connect()
-        {
-            #if UNITY_WSA && !UNITY_EDITOR
-            bool connected = false;
-            
-            // is it already connected?
-            if (BTLEDevice.IsConnected)
-            {
-                return true;
-            }
-            else
-            {
-                connected = BTLEDevice.Connect();
-            }
-
-
-            if (connected)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-            #else
-            return false;
-            #endif
-        }
 
 #if UNITY_WSA && !UNITY_EDITOR
 
@@ -239,6 +206,39 @@ namespace TestApp.Sample
             {
                 Feedback.Add(msg);
             }
+        }
+
+        /// <summary>
+        /// Called to make a connection with the BTLE device. 
+        /// </summary>
+        /// <returns></returns>
+        public bool Connect()
+        {
+            #if UNITY_WSA && !UNITY_EDITOR
+            bool connected = false;
+            
+            // is it already connected?
+            if (BTLEDevice.IsConnected)
+            {
+                return true;
+            }
+            else
+            {
+                connected = BTLEDevice.Connect();
+            }
+
+
+            if (connected)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+            #else
+            return false;
+            #endif
         }
 #endif
     }
