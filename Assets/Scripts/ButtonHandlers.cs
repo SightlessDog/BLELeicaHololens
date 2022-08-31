@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.MixedReality.Toolkit.UI;
 using UnityEngine;
 using Microsoft.MixedReality.Toolkit.Utilities;
@@ -146,12 +144,30 @@ public class ButtonHandlers : MonoBehaviour
             } while (status == BleApi.ScanStatus.AVAILABLE);
         }
 
-        if (BLEManager.Instance.getSubscribed())
+        if (BLEManager.Instance.getSubscribed())  
         {
             BleApi.BLEData res = new BleApi.BLEData();
+            if (BleApi.PollData(out res, false))
+            {
+                if (BLEManager.Instance.getCustomLeicaValue())
+                {
+                    Debug.Log("[DEBUG] EE value is " + BitConverter.ToSingle(res.buf, 0));
+                }
+                else
+                {
+                    Debug.Log("[DEBUG] EE value is " + BitConverter.ToSingle(res.buf, 0));
+                } 
+            }
             while (BleApi.PollData(out res, false))
             {
-                Debug.Log("[DEBUG] EE value is " + BitConverter.ToSingle(res.buf, 0));
+                if (BLEManager.Instance.getCustomLeicaValue())
+                {
+                    Debug.Log("[DEBUG] EE value is " + BitConverter.ToSingle(res.buf, 0));
+                }
+                else
+                {
+                    Debug.Log("[DEBUG] EE value is " + BitConverter.ToSingle(res.buf, 0));
+                }
             }
         }
     }
@@ -191,26 +207,31 @@ public class ButtonHandlers : MonoBehaviour
 
     public void Read(GameObject data)
     {
-        if (!BLEManager.Instance.getSubscribed())
+        if (!BLEManager.Instance.getSubscribed() && BLEManager.Instance.getCustomLeicaValue())
         {
             BLEManager.Instance.setSubscribed(true);
             Subscribe(data);
         }
-        var toSend = new BleApi.BLEData();
-        toSend.deviceId = BLEManager.Instance.GetDeviceId();
-        toSend.serviceUuid = BLEManager.Instance.GetServiceId();
-        toSend.characteristicUuid = data.name;
-        BleApi.ReadData(toSend);
+        else if (!BLEManager.Instance.getSubscribed() && !BLEManager.Instance.getCustomLeicaValue())
+        {
+            Debug.Log("It is a normal value");
+            var toSend = new BleApi.BLEData();
+            toSend.deviceId = BLEManager.Instance.GetDeviceId();
+            toSend.serviceUuid = BLEManager.Instance.GetServiceId();
+            toSend.characteristicUuid = data.name;
+            BleApi.ReadData(toSend);
+        }
     }
 
     public void Subscribe(GameObject data)
     {
-        // no error code available in non-blocking mode
-        BleApi.SubscribeCharacteristic(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId(), data.name,
-            false);
-    }
-
-    public void sendCommand(string command)
-    {
+        // If it's "disto" device then we need another way to deal with the data we get
+        if (deviceServices[BLEManager.Instance.GetServiceId()]["name"].Contains("DISTO"))
+        {
+            BLEManager.Instance.setCustomLeicaValue(true);
+            BleApi.SubscribeCharacteristic(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId(),
+                data.name,
+                false);
+        }
     }
 }

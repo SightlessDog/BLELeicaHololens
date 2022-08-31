@@ -4,6 +4,7 @@
     private string selectedDeviceId;
     private string selectedServiceId;
     private bool subscribed;
+    private bool customLeicaValue;
 
     public string GetDeviceId()
     {
@@ -34,4 +35,14 @@
     {
         return subscribed;
     }
-}
+
+    public void setCustomLeicaValue(bool custom)
+    {
+        customLeicaValue = custom; 
+    }
+
+    public bool getCustomLeicaValue()
+    {
+        return customLeicaValue;
+    }
+} 
