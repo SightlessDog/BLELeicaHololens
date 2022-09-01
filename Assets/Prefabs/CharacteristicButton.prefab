@@ -377,7 +377,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 249471959387093210, guid: 5de8de71ea170b64587c85d14acd5024, type: 3}
         m_TargetAssemblyTypeName: ButtonHandlers, Assembly-CSharp
-        m_MethodName: Read
+        m_MethodName: SetCharacteristicId
         m_Mode: 2
         m_Arguments:
           m_ObjectArgument: {fileID: 1542196697888924243}

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Microsoft.MixedReality.Toolkit.UI;
 using UnityEngine;
 using Microsoft.MixedReality.Toolkit.Utilities;
+using TestApp.Sample;
 using TMPro;
 
 public class ButtonHandlers : MonoBehaviour
@@ -11,18 +13,16 @@ public class ButtonHandlers : MonoBehaviour
     public GameObject DeviceConnectButton;
     public GameObject ServiceButton;
     public GameObject CharacteristicsButton;
+    public GameObject CommandsList;
     private Vector3 _lastPos = new Vector3(0.03f, 0f, 0.01f);
     [SerializeField] private GridObjectCollection[] _grid;
     bool isScanningDevices;
     bool isScanningServices;
     bool isScanningCharacteristics;
     bool isSubscribed;
-    Dictionary<string, Dictionary<string, string>> devices = new Dictionary<string, Dictionary<string, string>>();
+    bool writingToDevice;
 
-    Dictionary<string, Dictionary<string, string>>
-        deviceServices = new Dictionary<string, Dictionary<string, string>>();
-
-    Dictionary<string, Dictionary<string, string>> serviceCharacteristics =
+    readonly Dictionary<string, Dictionary<string, string>> devices =
         new Dictionary<string, Dictionary<string, string>>();
 
     string selectedDeviceId;
@@ -31,6 +31,8 @@ public class ButtonHandlers : MonoBehaviour
     public void Start()
     {
         _grid = GameObject.FindObjectsOfType<GridObjectCollection>();
+        CommandsList.gameObject.SetActive(false);
+        BLEManager.Instance.SetCommandsList(CommandsList);
     }
 
     void Update()
@@ -87,21 +89,16 @@ public class ButtonHandlers : MonoBehaviour
                 status = BleApi.PollService(out res, false);
                 if (status == BleApi.ScanStatus.AVAILABLE)
                 {
-                    if (!deviceServices.ContainsKey(res.uuid))
-                    {
-                        deviceServices[res.uuid] = new Dictionary<string, string>()
-                        {
-                            { "name", UuidConverter.ConvertUuidToName(Guid.Parse(res.uuid)) }
-                        };
-                    }
+                    BLEManager.Instance.HandleComingServiceData(res.uuid);
 
-                    if (deviceServices[res.uuid]["name"] != "")
+                    // TODO try to use less calls here, but for the moment all good
+                    if (BLEManager.Instance.getServiceList()[res.uuid]["name"] != "")
                     {
                         GameObject ins = Instantiate(ServiceButton, GameObject.Find("ServiceGrid").transform, true);
                         ins.name = res.uuid;
                         _grid[0].UpdateCollection();
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
-                        feedbackText.SetText(deviceServices[res.uuid]["name"]);
+                        feedbackText.SetText(BLEManager.Instance.getServiceList()[res.uuid]["name"]);
                     }
                 }
                 else if (status == BleApi.ScanStatus.FINISHED)
@@ -119,22 +116,16 @@ public class ButtonHandlers : MonoBehaviour
                 status = BleApi.PollCharacteristic(out res, false);
                 if (status == BleApi.ScanStatus.AVAILABLE)
                 {
-                    if (!serviceCharacteristics.ContainsKey(res.uuid))
-                    {
-                        serviceCharacteristics[res.uuid] = new Dictionary<string, string>()
-                        {
-                            { "name", UuidConverter.ConvertUuidToName(Guid.Parse(res.uuid)) }
-                        };
-                    }
+                    BLEManager.Instance.HandleComingCharacteristicsData(res.uuid);
 
-                    if (serviceCharacteristics[res.uuid]["name"] != "")
+                    if (BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"] != "")
                     {
                         GameObject ins = Instantiate(CharacteristicsButton,
                             GameObject.Find("CharacteristicsGrid").transform, true);
                         ins.name = res.uuid;
                         _grid[1].UpdateCollection();
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
-                        feedbackText.SetText(serviceCharacteristics[res.uuid]["name"]);
+                        feedbackText.SetText(BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
                     }
                 }
                 else if (status == BleApi.ScanStatus.FINISHED)
@@ -144,20 +135,9 @@ public class ButtonHandlers : MonoBehaviour
             } while (status == BleApi.ScanStatus.AVAILABLE);
         }
 
-        if (BLEManager.Instance.getSubscribed())  
+        if (BLEManager.Instance.getSubscribed())
         {
             BleApi.BLEData res = new BleApi.BLEData();
-            if (BleApi.PollData(out res, false))
-            {
-                if (BLEManager.Instance.getCustomLeicaValue())
-                {
-                    Debug.Log("[DEBUG] EE value is " + BitConverter.ToSingle(res.buf, 0));
-                }
-                else
-                {
-                    Debug.Log("[DEBUG] EE value is " + BitConverter.ToSingle(res.buf, 0));
-                } 
-            }
             while (BleApi.PollData(out res, false))
             {
                 if (BLEManager.Instance.getCustomLeicaValue())
@@ -166,7 +146,8 @@ public class ButtonHandlers : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("[DEBUG] EE value is " + BitConverter.ToSingle(res.buf, 0));
+                    Debug.Log("[DEBUG] EE value is " + Encoding.Unicode.GetString(res.buf, 0, res.size));
+                    BLEManager.Instance.setSubscribed(false);
                 }
             }
         }
@@ -203,6 +184,33 @@ public class ButtonHandlers : MonoBehaviour
         BLEManager.Instance.SetServiceId(data.name);
         GameObject.Find("Connect").GetComponent<Interactable>().enabled = false;
         GameObject.Find("ShowCharacs").GetComponent<Interactable>().enabled = true;
+        // If it's "disto" device then we need another way to deal with the data we get
+        if (BLEManager.Instance.getServiceList()[data.name]["name"].ToUpper().Contains("DISTO"))
+        {
+            BLEManager.Instance.setCustomLeicaValue(true);
+        }
+    }
+
+    public void SetCharacteristicId(GameObject data)
+    {
+        BLEManager.Instance.setCharacteristicId(data.name);
+        if (BLEManager.Instance.getCharacteristicsList()[data.name]["name"].ToUpper().Contains("COMMAND"))
+        {
+            if (!writingToDevice)
+            {
+                writingToDevice = true;
+                BLEManager.Instance.getCommandsList().gameObject.SetActive(true);
+            }
+            else
+            {
+                writingToDevice = false;
+                BLEManager.Instance.getCommandsList().gameObject.SetActive(false);
+            }
+        }
+        else
+        {
+            Read(data);
+        }
     }
 
     public void Read(GameObject data)
@@ -214,7 +222,7 @@ public class ButtonHandlers : MonoBehaviour
         }
         else if (!BLEManager.Instance.getSubscribed() && !BLEManager.Instance.getCustomLeicaValue())
         {
-            Debug.Log("It is a normal value");
+            BLEManager.Instance.setSubscribed(true);
             var toSend = new BleApi.BLEData();
             toSend.deviceId = BLEManager.Instance.GetDeviceId();
             toSend.serviceUuid = BLEManager.Instance.GetServiceId();
@@ -225,13 +233,28 @@ public class ButtonHandlers : MonoBehaviour
 
     public void Subscribe(GameObject data)
     {
-        // If it's "disto" device then we need another way to deal with the data we get
-        if (deviceServices[BLEManager.Instance.GetServiceId()]["name"].Contains("DISTO"))
-        {
-            BLEManager.Instance.setCustomLeicaValue(true);
-            BleApi.SubscribeCharacteristic(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId(),
-                data.name,
-                false);
-        }
+        BleApi.SubscribeCharacteristic(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId(),
+            data.name,
+            false);
+    }
+
+    public void SendCommand(GameObject data)
+    {
+        string command = data.name;
+        Commands res;
+        Commands.TryParse(command, out res);
+        string value = Util.GetEnumMemberAttrValue(typeof(Commands), res);
+        byte[] payload = Encoding.ASCII.GetBytes(value);
+        BleApi.BLEData toSend = new BleApi.BLEData();
+        toSend.buf = new byte[512];
+        toSend.size = (short)payload.Length;
+        toSend.deviceId = selectedDeviceId;
+        toSend.serviceUuid = BLEManager.Instance.GetServiceId();
+        toSend.characteristicUuid = BLEManager.Instance.getCharacteristicId();
+        ;
+        for (int i = 0; i < payload.Length; i++)
+            toSend.buf[i] = payload[i];
+        // no error code available in non-blocking mode
+        BleApi.SendData(in toSend, false);
     }
 }
