@@ -248,10 +248,9 @@ public class ButtonHandlers : MonoBehaviour
         BleApi.BLEData toSend = new BleApi.BLEData();
         toSend.buf = new byte[512];
         toSend.size = (short)payload.Length;
-        toSend.deviceId = selectedDeviceId;
+        toSend.deviceId = BLEManager.Instance.GetDeviceId();
         toSend.serviceUuid = BLEManager.Instance.GetServiceId();
         toSend.characteristicUuid = BLEManager.Instance.getCharacteristicId();
-        ;
         for (int i = 0; i < payload.Length; i++)
             toSend.buf[i] = payload[i];
         // no error code available in non-blocking mode
