@@ -10,7 +10,7 @@ public class BleApi
     // dll calls
 
 #if UNITY_EDITOR
-    const string Blewinrtdll = "BleWinrtDllx64.dll";
+        const string Blewinrtdll = "BleWinrtDllx64.dll";
 #else
         const string Blewinrtdll = "BleWinrtDll.dll";
 #endif

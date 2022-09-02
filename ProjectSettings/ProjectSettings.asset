@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Island Labs GmbH
-  productName: Test2
+  productName: HOBLE
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -136,6 +136,8 @@ PlayerSettings:
     Others: 1
   bundleVersion: 0.1
   preloadedAssets:
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
@@ -730,13 +732,14 @@ PlayerSettings:
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   metroPackageName: com.island-labs.test2
-  metroPackageVersion: 1.0.80.0
+  metroPackageVersion: 1.0.83.0
   metroCertificatePath: Assets/WSATestCertificate.pfx
   metroCertificatePassword: 
   metroCertificateSubject: Island Labs GmbH
   metroCertificateIssuer: Island Labs GmbH
   metroCertificateNotAfter: 80a64858dad2d901
-  metroApplicationDescription: MegaHamehameha
+  metroApplicationDescription: Hololens app that connects to a leica rangefinder
+    through Bluetooth LE
   wsaImages: {}
   metroTileShortName: Test2
   metroTileShowName: 0
@@ -754,6 +757,7 @@ PlayerSettings:
     WindowsStoreApps:
       GazeInput: True
       Bluetooth: True
+      LowLevelDevices: True
       SpatialPerception: True
       InternetClient: True
       WebCam: True

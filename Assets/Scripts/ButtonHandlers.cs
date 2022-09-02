@@ -20,6 +20,7 @@ public class ButtonHandlers : MonoBehaviour
     bool isScanningCharacteristics;
     bool isSubscribed;
     bool writingToDevice;
+    bool deviceShown;
 
     readonly Dictionary<string, Dictionary<string, string>> devices =
         new Dictionary<string, Dictionary<string, string>>();
@@ -57,8 +58,9 @@ public class ButtonHandlers : MonoBehaviour
                         devices[res.id]["isConnectable"] = res.isConnectable.ToString();
                     // consider only devices which have a name and which are connectable
                     if (devices[res.id]["name"] != "" && devices[res.id]["name"].Contains("DISTO") &&
-                        devices[res.id]["isConnectable"] == "True")
+                        devices[res.id]["isConnectable"] == "True" && !deviceShown)
                     {
+                        deviceShown = true;
                         // add new device to list
                         GameObject ins = Instantiate(DeviceConnectButton, GameObject.Find("Grid").transform, true);
                         ins.name = res.id;
@@ -67,6 +69,7 @@ public class ButtonHandlers : MonoBehaviour
                         _grid[0].UpdateCollection();
                         _grid[1].UpdateCollection();
                         _grid[2].UpdateCollection();
+                        _grid[3].UpdateCollection();
                         // ins.transform.GetChild(0).GetComponent<TextMeshPro>().text = devices[res.id]["name"];
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
                         feedbackText.SetText(devices[res.id]["name"]);
@@ -101,6 +104,7 @@ public class ButtonHandlers : MonoBehaviour
                         _grid[0].UpdateCollection();
                         _grid[1].UpdateCollection();
                         _grid[2].UpdateCollection();
+                        _grid[3].UpdateCollection();
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
                         feedbackText.SetText(BLEManager.Instance.getServiceList()[res.uuid]["name"]);
                     }
@@ -124,13 +128,14 @@ public class ButtonHandlers : MonoBehaviour
 
                     if (BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"] != "")
                     {
-                        Debug.Log("Found services " + BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
+                        Debug.Log("Found characteristics " + BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
                         GameObject ins = Instantiate(CharacteristicsButton,
                             GameObject.Find("CharacteristicsGrid").transform, true);
                         ins.name = res.uuid;
                         _grid[0].UpdateCollection();
                         _grid[1].UpdateCollection();
                         _grid[2].UpdateCollection();
+                        _grid[3].UpdateCollection();
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
                         feedbackText.SetText(BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
                     }
@@ -168,13 +173,14 @@ public class ButtonHandlers : MonoBehaviour
 
     public void OnConnectClicked()
     {
-        Debug.Log("Connect clicked " + BLEManager.Instance.GetDeviceId());
         isScanningServices = true;
         BleApi.ScanServices(BLEManager.Instance.GetDeviceId());
     }
 
     public void ShowCharacteristics()
     {
+        Debug.Log("[DEBUG] Show characteristics is clicked " + BLEManager.Instance.GetDeviceId() + " " +
+                  BLEManager.Instance.GetServiceId());
         isScanningCharacteristics = true;
         isScanningServices = false;
         isScanningDevices = false;
@@ -201,6 +207,7 @@ public class ButtonHandlers : MonoBehaviour
 
     public void SetCharacteristicId(GameObject data)
     {
+        Debug.Log("SetCharId " + data.name);
         BLEManager.Instance.setCharacteristicId(data.name);
         if (BLEManager.Instance.getCharacteristicsList()[data.name]["name"].ToUpper().Contains("COMMAND"))
         {
