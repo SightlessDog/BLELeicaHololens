@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -102,3 +103,4 @@ public class BleApi
     [DllImport("BleWinrtDll.dll", EntryPoint = "ReadData")]
     public static extern void ReadData(in BLEData data);
 }
+#endif

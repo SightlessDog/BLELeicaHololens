@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b833f22181499af42ac54d4d5da52f9d
+guid: 66f03e4e5155b664c98882376ee85687
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -16,25 +16,25 @@ PluginImporter:
     second:
       enabled: 0
       settings:
-        Exclude Editor: 1
+        Exclude Editor: 0
         Exclude Linux64: 1
         Exclude OSXUniversal: 1
         Exclude Win: 1
         Exclude Win64: 1
-        Exclude WindowsStoreApps: 0
+        Exclude WindowsStoreApps: 1
   - first:
       Any: 
     second:
-      enabled: 0
+      enabled: 1
       settings: {}
   - first:
       Editor: Editor
     second:
-      enabled: 0
+      enabled: 1
       settings:
         CPU: AnyCPU
         DefaultValueInitialized: true
-        OS: AnyOS
+        OS: Windows
   - first:
       Standalone: Linux64
     second:
@@ -62,13 +62,13 @@ PluginImporter:
   - first:
       Windows Store Apps: WindowsStoreApps
     second:
-      enabled: 1
+      enabled: 0
       settings:
-        CPU: AnyCPU
+        CPU: X86
         DontProcess: false
         PlaceholderPath: 
-        SDK: UWP
-        ScriptingBackend: Il2Cpp
+        SDK: AnySDK
+        ScriptingBackend: AnyScriptingBackend
   userData: 
   assetBundleName: 
   assetBundleVariant: 

@@ -4,7 +4,6 @@ using System.Text;
 using Microsoft.MixedReality.Toolkit.UI;
 using UnityEngine;
 using Microsoft.MixedReality.Toolkit.Utilities;
-using TestApp.Sample;
 using TMPro;
 
 public class ButtonHandlers : MonoBehaviour
@@ -43,7 +42,7 @@ public class ButtonHandlers : MonoBehaviour
             BleApi.DeviceUpdate res = new BleApi.DeviceUpdate();
             do
             {
-                status = BleApi.PollDevice(ref res, false);
+                status = BleApi.PollDevice(out res, false);
                 if (status == BleApi.ScanStatus.AVAILABLE)
                 {
                     if (!devices.ContainsKey(res.id))
@@ -64,7 +63,9 @@ public class ButtonHandlers : MonoBehaviour
                         GameObject ins = Instantiate(DeviceConnectButton, GameObject.Find("Grid").transform, true);
                         ins.name = res.id;
                         ins.transform.position = new Vector3(_lastPos.x, _lastPos.y - 0.01f, _lastPos.z);
-                        _lastPos.y -= 0.01f;
+                        _lastPos.y -= 0.01f;    
+                        _grid[0].UpdateCollection();
+                        _grid[1].UpdateCollection();
                         _grid[2].UpdateCollection();
                         // ins.transform.GetChild(0).GetComponent<TextMeshPro>().text = devices[res.id]["name"];
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
@@ -94,9 +95,12 @@ public class ButtonHandlers : MonoBehaviour
                     // TODO try to use less calls here, but for the moment all good
                     if (BLEManager.Instance.getServiceList()[res.uuid]["name"] != "")
                     {
+                        Debug.Log("Found services " + BLEManager.Instance.getServiceList()[res.uuid]["name"]);
                         GameObject ins = Instantiate(ServiceButton, GameObject.Find("ServiceGrid").transform, true);
                         ins.name = res.uuid;
                         _grid[0].UpdateCollection();
+                        _grid[1].UpdateCollection();
+                        _grid[2].UpdateCollection();
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
                         feedbackText.SetText(BLEManager.Instance.getServiceList()[res.uuid]["name"]);
                     }
@@ -120,10 +124,13 @@ public class ButtonHandlers : MonoBehaviour
 
                     if (BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"] != "")
                     {
+                        Debug.Log("Found services " + BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
                         GameObject ins = Instantiate(CharacteristicsButton,
                             GameObject.Find("CharacteristicsGrid").transform, true);
                         ins.name = res.uuid;
+                        _grid[0].UpdateCollection();
                         _grid[1].UpdateCollection();
+                        _grid[2].UpdateCollection();
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
                         feedbackText.SetText(BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
                     }
@@ -161,6 +168,7 @@ public class ButtonHandlers : MonoBehaviour
 
     public void OnConnectClicked()
     {
+        Debug.Log("Connect clicked " + BLEManager.Instance.GetDeviceId());
         isScanningServices = true;
         BleApi.ScanServices(BLEManager.Instance.GetDeviceId());
     }
@@ -227,7 +235,7 @@ public class ButtonHandlers : MonoBehaviour
             toSend.deviceId = BLEManager.Instance.GetDeviceId();
             toSend.serviceUuid = BLEManager.Instance.GetServiceId();
             toSend.characteristicUuid = data.name;
-            BleApi.ReadData(toSend);
+            //BleApi.ReadData(toSend);
         }
     }
 

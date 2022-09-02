@@ -1,4 +1,5 @@
-﻿using AOT;
+﻿#if false
+using AOT;
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -34,3 +35,4 @@ public class DebugCPP : MonoBehaviour
         UnityEngine.Debug.Log(debug_string);
     }
 }
+#endif
