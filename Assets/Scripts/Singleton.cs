@@ -59,7 +59,6 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
     /// </summary>
     protected virtual void Awake()
     {
-        Debug.Log("Awake the Singleton class");
         if (instance != null && instance != this)
         {
             if (Application.isEditor)

@@ -14,13 +14,15 @@ public class ButtonHandlers : MonoBehaviour
     public GameObject CharacteristicsButton;
     public GameObject CommandsList;
     private Vector3 _lastPos = new Vector3(0.03f, 0f, 0.01f);
-    [SerializeField] private GridObjectCollection[] _grid;
+    [SerializeField] private GameObject devicesList;
+    [SerializeField] private GameObject serviceList;
+    [SerializeField] private GameObject characteristicsList;
     bool isScanningDevices;
     bool isScanningServices;
     bool isScanningCharacteristics;
-    bool isSubscribed;
     bool writingToDevice;
     bool deviceShown;
+    public static event Action<State> onStateChanged;
 
     readonly Dictionary<string, Dictionary<string, string>> devices =
         new Dictionary<string, Dictionary<string, string>>();
@@ -30,7 +32,7 @@ public class ButtonHandlers : MonoBehaviour
     // A unity defined script method.  Called when the script object is first created.
     public void Start()
     {
-        _grid = GameObject.FindObjectsOfType<GridObjectCollection>();
+        UpdateAppState(State.STARTED);
         CommandsList.gameObject.SetActive(false);
         BLEManager.Instance.SetCommandsList(CommandsList);
     }
@@ -62,25 +64,18 @@ public class ButtonHandlers : MonoBehaviour
                     {
                         deviceShown = true;
                         // add new device to list
-                        GameObject ins = Instantiate(DeviceConnectButton, GameObject.Find("Grid").transform, true);
+                        GameObject ins = Instantiate(DeviceConnectButton, devicesList.transform, true);
                         ins.name = res.id;
                         ins.transform.position = new Vector3(_lastPos.x, _lastPos.y - 0.01f, _lastPos.z);
-                        _lastPos.y -= 0.01f;    
-                        _grid[0].UpdateCollection();
-                        _grid[1].UpdateCollection();
-                        _grid[2].UpdateCollection();
-                        _grid[3].UpdateCollection();
-                        // ins.transform.GetChild(0).GetComponent<TextMeshPro>().text = devices[res.id]["name"];
+                        _lastPos.y -= 0.01f;
+                        devicesList.GetComponent<GridObjectCollection>().UpdateCollection();
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
                         feedbackText.SetText(devices[res.id]["name"]);
-                        // ins.transform.GetChild(1).GetComponent<TextMeshPro>().text = res.id;
                     }
                 }
                 else if (status == BleApi.ScanStatus.FINISHED)
                 {
                     isScanningDevices = false;
-                    //deviceScanButtonText.text = "Scan devices";
-                    //deviceScanStatusText.text = "finished";
                 }
             } while (status == BleApi.ScanStatus.AVAILABLE);
         }
@@ -99,12 +94,9 @@ public class ButtonHandlers : MonoBehaviour
                     if (BLEManager.Instance.getServiceList()[res.uuid]["name"] != "")
                     {
                         Debug.Log("Found services " + BLEManager.Instance.getServiceList()[res.uuid]["name"]);
-                        GameObject ins = Instantiate(ServiceButton, GameObject.Find("ServiceGrid").transform, true);
+                        GameObject ins = Instantiate(ServiceButton, serviceList.transform, true);
                         ins.name = res.uuid;
-                        _grid[0].UpdateCollection();
-                        _grid[1].UpdateCollection();
-                        _grid[2].UpdateCollection();
-                        _grid[3].UpdateCollection();
+                        serviceList.GetComponent<GridObjectCollection>().UpdateCollection();
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
                         feedbackText.SetText(BLEManager.Instance.getServiceList()[res.uuid]["name"]);
                     }
@@ -128,14 +120,12 @@ public class ButtonHandlers : MonoBehaviour
 
                     if (BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"] != "")
                     {
-                        Debug.Log("Found characteristics " + BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
+                        Debug.Log("Found characteristics " +
+                                  BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
                         GameObject ins = Instantiate(CharacteristicsButton,
-                            GameObject.Find("CharacteristicsGrid").transform, true);
+                            characteristicsList.transform, true);
                         ins.name = res.uuid;
-                        _grid[0].UpdateCollection();
-                        _grid[1].UpdateCollection();
-                        _grid[2].UpdateCollection();
-                        _grid[3].UpdateCollection();
+                        characteristicsList.GetComponent<GridObjectCollection>().UpdateCollection();
                         feedbackText = ins.GetComponentInChildren<TextMeshPro>();
                         feedbackText.SetText(BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
                     }
@@ -169,12 +159,14 @@ public class ButtonHandlers : MonoBehaviour
     {
         isScanningDevices = true;
         BleApi.StartDeviceScan();
+        UpdateAppState(State.ENUMERATING);
     }
 
     public void OnConnectClicked()
     {
         isScanningServices = true;
         BleApi.ScanServices(BLEManager.Instance.GetDeviceId());
+        UpdateAppState(State.CONNECTING);
     }
 
     public void ShowCharacteristics()
@@ -185,11 +177,13 @@ public class ButtonHandlers : MonoBehaviour
         isScanningServices = false;
         isScanningDevices = false;
         BleApi.ScanCharacteristics(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId());
+        UpdateAppState(State.SHOWINGCHARACTERISTICS);
     }
 
     public void SetDeviceId(GameObject data)
     {
         BLEManager.Instance.SetDeviceId(data.name);
+        UpdateAppState(State.ENUMERATED);
         GameObject.Find("Connect").GetComponent<Interactable>().enabled = true;
     }
 
@@ -198,6 +192,8 @@ public class ButtonHandlers : MonoBehaviour
         BLEManager.Instance.SetServiceId(data.name);
         GameObject.Find("Connect").GetComponent<Interactable>().enabled = false;
         GameObject.Find("ShowCharacs").GetComponent<Interactable>().enabled = true;
+        UpdateAppState(State.CONNECTED);
+        GameObject.Find("Disconnect").GetComponent<Interactable>().enabled = true;
         // If it's "disto" device then we need another way to deal with the data we get
         if (BLEManager.Instance.getServiceList()[data.name]["name"].ToUpper().Contains("DISTO"))
         {
@@ -209,6 +205,7 @@ public class ButtonHandlers : MonoBehaviour
     {
         Debug.Log("SetCharId " + data.name);
         BLEManager.Instance.setCharacteristicId(data.name);
+        UpdateAppState(State.CHARACTERISTICSSHOWN);
         if (BLEManager.Instance.getCharacteristicsList()[data.name]["name"].ToUpper().Contains("COMMAND"))
         {
             if (!writingToDevice)
@@ -242,7 +239,7 @@ public class ButtonHandlers : MonoBehaviour
             toSend.deviceId = BLEManager.Instance.GetDeviceId();
             toSend.serviceUuid = BLEManager.Instance.GetServiceId();
             toSend.characteristicUuid = data.name;
-            //BleApi.ReadData(toSend);
+            BleApi.ReadData(toSend);
         }
     }
 
@@ -271,4 +268,40 @@ public class ButtonHandlers : MonoBehaviour
         // no error code available in non-blocking mode
         BleApi.SendData(in toSend, false);
     }
+
+    public void Disconnect()
+    {
+        GameObject.Find("Disconnect").GetComponent<Interactable>().enabled = false;
+        BleApi.Disconnect(BLEManager.Instance.GetDeviceId());
+        UpdateAppState(State.DISCONNECTED);
+    }
+
+    public void UpdateAppState(State state)
+    {
+        onStateChanged?.Invoke(state);
+        if (state == State.DISCONNECTED)
+        {
+            foreach (Transform t in serviceList.transform)
+            {
+                GameObject.Destroy(t.gameObject);
+            }
+            foreach (Transform t in characteristicsList.transform)
+            {
+                GameObject.Destroy(t.gameObject);
+            }
+        }
+    }
+}
+
+public enum State
+{
+    STARTED,
+    ENUMERATING,
+    ENUMERATED,
+    CONNECTING,
+    CONNECTED,
+    DISCONNECTING,
+    DISCONNECTED,
+    SHOWINGCHARACTERISTICS,
+    CHARACTERISTICSSHOWN
 }

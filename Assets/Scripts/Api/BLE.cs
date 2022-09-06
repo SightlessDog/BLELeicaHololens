@@ -79,6 +79,12 @@ public class BleApi
     public static extern bool SubscribeCharacteristic(string deviceId, string serviceId, string characteristicId,
         bool block);
 
+    [DllImport(Blewinrtdll, EntryPoint = "Disconnect")]
+    public static extern bool Disconnect(string deviceId);
+    
+    [DllImport(Blewinrtdll, EntryPoint = "ReadData")]
+    public static extern void ReadData(in BLEData data);
+    
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct BLEData
     {
