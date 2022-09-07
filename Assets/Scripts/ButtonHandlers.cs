@@ -17,6 +17,7 @@ public class ButtonHandlers : MonoBehaviour
     [SerializeField] private GameObject devicesList;
     [SerializeField] private GameObject serviceList;
     [SerializeField] private GameObject characteristicsList;
+    [SerializeField] private GameObject deviceResponse;
     bool isScanningDevices;
     bool isScanningServices;
     bool isScanningCharacteristics;
@@ -117,11 +118,8 @@ public class ButtonHandlers : MonoBehaviour
                 if (status == BleApi.ScanStatus.AVAILABLE)
                 {
                     BLEManager.Instance.HandleComingCharacteristicsData(res.uuid);
-
                     if (BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"] != "")
                     {
-                        Debug.Log("Found characteristics " +
-                                  BLEManager.Instance.getCharacteristicsList()[res.uuid]["name"]);
                         GameObject ins = Instantiate(CharacteristicsButton,
                             characteristicsList.transform, true);
                         ins.name = res.uuid;
@@ -144,11 +142,14 @@ public class ButtonHandlers : MonoBehaviour
             {
                 if (BLEManager.Instance.getCustomLeicaValue())
                 {
-                    Debug.Log("[DEBUG] EE value is " + BitConverter.ToSingle(res.buf, 0));
+                    float value = BitConverter.ToSingle(res.buf, 0);
+                    //TODO: Make sure the unit is dynamic
+                    deviceResponse.GetComponent<TextMeshPro>().SetText("Value Read from the device is : " + value + " m." );
                 }
                 else
                 {
-                    Debug.Log("[DEBUG] EE value is " + Encoding.Unicode.GetString(res.buf, 0, res.size));
+                    string value = Encoding.Unicode.GetString(res.buf, 0, res.size);
+                    deviceResponse.GetComponent<TextMeshPro>().SetText("Value Read from the device is : " + value);
                     BLEManager.Instance.setSubscribed(false);
                 }
             }
@@ -165,17 +166,23 @@ public class ButtonHandlers : MonoBehaviour
     public void OnConnectClicked()
     {
         isScanningServices = true;
+        foreach (Transform t in serviceList.transform)
+        {
+            GameObject.Destroy(t.gameObject);
+        }
         BleApi.ScanServices(BLEManager.Instance.GetDeviceId());
         UpdateAppState(State.CONNECTING);
     }
 
     public void ShowCharacteristics()
     {
-        Debug.Log("[DEBUG] Show characteristics is clicked " + BLEManager.Instance.GetDeviceId() + " " +
-                  BLEManager.Instance.GetServiceId());
         isScanningCharacteristics = true;
         isScanningServices = false;
         isScanningDevices = false;
+        foreach (Transform t in characteristicsList.transform)
+        {
+            GameObject.Destroy(t.gameObject);
+        }
         BleApi.ScanCharacteristics(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId());
         UpdateAppState(State.SHOWINGCHARACTERISTICS);
     }
@@ -255,6 +262,15 @@ public class ButtonHandlers : MonoBehaviour
         string command = data.name;
         Commands res;
         Commands.TryParse(command, out res);
+        if (res == Commands.LaserOff)
+        {
+            NotificationManager.Instance.SetNewNotification("Laser went off");
+        }
+
+        if (res == Commands.LaserOn)
+        {
+            NotificationManager.Instance.SetNewNotification("Laser went on");
+        }
         string value = Util.GetEnumMemberAttrValue(typeof(Commands), res);
         byte[] payload = Encoding.ASCII.GetBytes(value);
         BleApi.BLEData toSend = new BleApi.BLEData();
@@ -272,7 +288,7 @@ public class ButtonHandlers : MonoBehaviour
     public void Disconnect()
     {
         GameObject.Find("Disconnect").GetComponent<Interactable>().enabled = false;
-        BleApi.Disconnect(BLEManager.Instance.GetDeviceId());
+        BleApi.Quit();
         UpdateAppState(State.DISCONNECTED);
     }
 
@@ -290,6 +306,11 @@ public class ButtonHandlers : MonoBehaviour
                 GameObject.Destroy(t.gameObject);
             }
         }
+    }
+
+    private void OnApplicationQuit()
+    {
+        BleApi.Quit();
     }
 }
 

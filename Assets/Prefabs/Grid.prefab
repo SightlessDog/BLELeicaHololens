@@ -62,7 +62,7 @@ MonoBehaviour:
   radialRange: 180
   distance: 0
   rows: 1
-  columns: 2
+  columns: 1
   cellWidth: 0.096
   cellHeight: 0.032
   assetVersion: 1

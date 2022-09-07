@@ -44,6 +44,7 @@ public class ButtonStyler : MonoBehaviour
         } else if (state == State.DISCONNECTED)
         {
             disconnectButton.GetComponent<MeshRenderer>().material = disabledState;
+            enumerateButton.GetComponent<MeshRenderer>().material = disabledState;
             connectButton.GetComponent<MeshRenderer>().material = connectState;
         }
     }
