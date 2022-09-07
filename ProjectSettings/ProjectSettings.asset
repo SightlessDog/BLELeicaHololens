@@ -735,7 +735,7 @@ PlayerSettings:
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   metroPackageName: com.island-labs.test2
-  metroPackageVersion: 1.0.86.0
+  metroPackageVersion: 2.0.1.0
   metroCertificatePath: Assets/WSATestCertificate.pfx
   metroCertificatePassword: 
   metroCertificateSubject: Island Labs GmbH

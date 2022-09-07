@@ -144,11 +144,13 @@ public class ButtonHandlers : MonoBehaviour
                 {
                     float value = BitConverter.ToSingle(res.buf, 0);
                     //TODO: Make sure the unit is dynamic
+                    Debug.Log("The response that we got is " + value);
                     deviceResponse.GetComponent<TextMeshPro>().SetText("Value Read from the device is : " + value + " m." );
                 }
                 else
                 {
                     string value = Encoding.Unicode.GetString(res.buf, 0, res.size);
+                    Debug.Log("The response that we got is " + value);
                     deviceResponse.GetComponent<TextMeshPro>().SetText("Value Read from the device is : " + value);
                     BLEManager.Instance.setSubscribed(false);
                 }
@@ -210,7 +212,6 @@ public class ButtonHandlers : MonoBehaviour
 
     public void SetCharacteristicId(GameObject data)
     {
-        Debug.Log("SetCharId " + data.name);
         BLEManager.Instance.setCharacteristicId(data.name);
         UpdateAppState(State.CHARACTERISTICSSHOWN);
         if (BLEManager.Instance.getCharacteristicsList()[data.name]["name"].ToUpper().Contains("COMMAND"))
@@ -219,11 +220,13 @@ public class ButtonHandlers : MonoBehaviour
             {
                 writingToDevice = true;
                 BLEManager.Instance.getCommandsList().gameObject.SetActive(true);
+                Read(data);
             }
             else
             {
                 writingToDevice = false;
                 BLEManager.Instance.getCommandsList().gameObject.SetActive(false);
+                BLEManager.Instance.setSubscribed(false);
             }
         }
         else
