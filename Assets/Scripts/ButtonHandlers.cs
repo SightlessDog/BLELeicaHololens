@@ -94,7 +94,6 @@ public class ButtonHandlers : MonoBehaviour
                     // TODO try to use less calls here, but for the moment all good
                     if (BLEManager.Instance.getServiceList()[res.uuid]["name"] != "")
                     {
-                        Debug.Log("Found services " + BLEManager.Instance.getServiceList()[res.uuid]["name"]);
                         GameObject ins = Instantiate(ServiceButton, serviceList.transform, true);
                         ins.name = res.uuid;
                         serviceList.GetComponent<GridObjectCollection>().UpdateCollection();
@@ -183,7 +182,7 @@ public class ButtonHandlers : MonoBehaviour
         isScanningDevices = false;
         foreach (Transform t in characteristicsList.transform)
         {
-            GameObject.Destroy(t.gameObject);
+            Destroy(t.gameObject);
         }
         BleApi.ScanCharacteristics(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId());
         UpdateAppState(State.SHOWINGCHARACTERISTICS);
@@ -267,11 +266,13 @@ public class ButtonHandlers : MonoBehaviour
         Commands.TryParse(command, out res);
         if (res == Commands.LaserOff)
         {
+            Debug.Log("[DEBUG EE] Laser off clicked");
             NotificationManager.Instance.SetNewNotification("Laser went off");
         }
 
         if (res == Commands.LaserOn)
         {
+            Debug.Log("[DEBUG EE] Laser on clicked");
             NotificationManager.Instance.SetNewNotification("Laser went on");
         }
         string value = Util.GetEnumMemberAttrValue(typeof(Commands), res);
