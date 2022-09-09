@@ -27,9 +27,7 @@ public class ButtonHandlers : MonoBehaviour
 
     readonly Dictionary<string, Dictionary<string, string>> devices =
         new Dictionary<string, Dictionary<string, string>>();
-
-    string selectedDeviceId;
-
+    
     // A unity defined script method.  Called when the script object is first created.
     public void Start()
     {
@@ -90,7 +88,6 @@ public class ButtonHandlers : MonoBehaviour
                 if (status == BleApi.ScanStatus.AVAILABLE)
                 {
                     BLEManager.Instance.HandleComingServiceData(res.uuid);
-
                     // TODO try to use less calls here, but for the moment all good
                     if (BLEManager.Instance.getServiceList()[res.uuid]["name"] != "")
                     {
@@ -103,6 +100,7 @@ public class ButtonHandlers : MonoBehaviour
                 }
                 else if (status == BleApi.ScanStatus.FINISHED)
                 {
+                    UpdateAppState(State.CONNECTED);
                     isScanningServices = false;
                 }
             } while (status == BleApi.ScanStatus.AVAILABLE);
@@ -129,6 +127,7 @@ public class ButtonHandlers : MonoBehaviour
                 }
                 else if (status == BleApi.ScanStatus.FINISHED)
                 {
+                    UpdateAppState(State.CHARACTERISTICSSHOWN);
                     isScanningCharacteristics = false;
                 }
             } while (status == BleApi.ScanStatus.AVAILABLE);
@@ -143,13 +142,12 @@ public class ButtonHandlers : MonoBehaviour
                 {
                     float value = BitConverter.ToSingle(res.buf, 0);
                     //TODO: Make sure the unit is dynamic
-                    Debug.Log("The response that we got is " + value);
-                    deviceResponse.GetComponent<TextMeshPro>().SetText("Value Read from the device is : " + value + " m." );
+                    deviceResponse.GetComponent<TextMeshPro>()
+                        .SetText("Value Read from the device is : " + value + " m.");
                 }
                 else
                 {
                     string value = Encoding.Unicode.GetString(res.buf, 0, res.size);
-                    Debug.Log("The response that we got is " + value);
                     deviceResponse.GetComponent<TextMeshPro>().SetText("Value Read from the device is : " + value);
                     BLEManager.Instance.setSubscribed(false);
                 }
@@ -171,6 +169,7 @@ public class ButtonHandlers : MonoBehaviour
         {
             GameObject.Destroy(t.gameObject);
         }
+
         BleApi.ScanServices(BLEManager.Instance.GetDeviceId());
         UpdateAppState(State.CONNECTING);
     }
@@ -184,15 +183,17 @@ public class ButtonHandlers : MonoBehaviour
         {
             Destroy(t.gameObject);
         }
+
         BleApi.ScanCharacteristics(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId());
         UpdateAppState(State.SHOWINGCHARACTERISTICS);
     }
 
     public void SetDeviceId(GameObject data)
     {
+        BLEManager.Instance.SetDeviceName(data.GetComponentInChildren<TextMeshPro>().text); 
         BLEManager.Instance.SetDeviceId(data.name);
-        UpdateAppState(State.ENUMERATED);
         GameObject.Find("Connect").GetComponent<Interactable>().enabled = true;
+        UpdateAppState(State.ENUMERATED);
     }
 
     public void SetServiceId(GameObject data)
@@ -200,19 +201,24 @@ public class ButtonHandlers : MonoBehaviour
         BLEManager.Instance.SetServiceId(data.name);
         GameObject.Find("Connect").GetComponent<Interactable>().enabled = false;
         GameObject.Find("ShowCharacs").GetComponent<Interactable>().enabled = true;
-        UpdateAppState(State.CONNECTED);
         GameObject.Find("Disconnect").GetComponent<Interactable>().enabled = true;
         // If it's "disto" device then we need another way to deal with the data we get
         if (BLEManager.Instance.getServiceList()[data.name]["name"].ToUpper().Contains("DISTO"))
         {
+            BLEManager.Instance.setSubscribed(false);
             BLEManager.Instance.setCustomLeicaValue(true);
         }
+        else
+        {
+            BLEManager.Instance.setSubscribed(false);
+            BLEManager.Instance.setCustomLeicaValue(false);
+        }
+        UpdateAppState(State.SERVICESELECTED);
     }
 
     public void SetCharacteristicId(GameObject data)
     {
         BLEManager.Instance.setCharacteristicId(data.name);
-        UpdateAppState(State.CHARACTERISTICSSHOWN);
         if (BLEManager.Instance.getCharacteristicsList()[data.name]["name"].ToUpper().Contains("COMMAND"))
         {
             if (!writingToDevice)
@@ -230,6 +236,8 @@ public class ButtonHandlers : MonoBehaviour
         }
         else
         {
+            writingToDevice = false;
+            BLEManager.Instance.getCommandsList().gameObject.SetActive(false);
             Read(data);
         }
     }
@@ -239,7 +247,7 @@ public class ButtonHandlers : MonoBehaviour
         if (!BLEManager.Instance.getSubscribed() && BLEManager.Instance.getCustomLeicaValue())
         {
             BLEManager.Instance.setSubscribed(true);
-            Subscribe(data);
+            Subscribe(data.name);
         }
         else if (!BLEManager.Instance.getSubscribed() && !BLEManager.Instance.getCustomLeicaValue())
         {
@@ -252,13 +260,14 @@ public class ButtonHandlers : MonoBehaviour
         }
     }
 
-    public void Subscribe(GameObject data)
+    public void Subscribe(string data)
     {
         BleApi.SubscribeCharacteristic(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId(),
-            data.name,
+            data,
             false);
     }
 
+    // TODO this needs refactoring
     public void SendCommand(GameObject data)
     {
         string command = data.name;
@@ -266,13 +275,10 @@ public class ButtonHandlers : MonoBehaviour
         Commands.TryParse(command, out res);
         if (res == Commands.LaserOff)
         {
-            Debug.Log("[DEBUG EE] Laser off clicked");
             NotificationManager.Instance.SetNewNotification("Laser went off");
         }
-
         if (res == Commands.LaserOn)
         {
-            Debug.Log("[DEBUG EE] Laser on clicked");
             NotificationManager.Instance.SetNewNotification("Laser went on");
         }
         string value = Util.GetEnumMemberAttrValue(typeof(Commands), res);
@@ -285,6 +291,18 @@ public class ButtonHandlers : MonoBehaviour
         toSend.characteristicUuid = BLEManager.Instance.getCharacteristicId();
         for (int i = 0; i < payload.Length; i++)
             toSend.buf[i] = payload[i];
+        // TODO shame 
+        if (data.name.ToUpper() == "DISTANCE")
+        {
+            foreach (var pair in BLEManager.Instance.getCharacteristicsList())
+            {
+                if (pair.Value.ContainsValue(data.name))
+                {
+                    Subscribe(pair.Key);
+                    Debug.Log("Pair value is " + pair.Key);
+                }
+            }    
+        }
         // no error code available in non-blocking mode
         BleApi.SendData(in toSend, false);
     }
@@ -299,15 +317,17 @@ public class ButtonHandlers : MonoBehaviour
     public void UpdateAppState(State state)
     {
         onStateChanged?.Invoke(state);
+
         if (state == State.DISCONNECTED)
         {
             foreach (Transform t in serviceList.transform)
             {
-                GameObject.Destroy(t.gameObject);
+                Destroy(t.gameObject);
             }
+
             foreach (Transform t in characteristicsList.transform)
             {
-                GameObject.Destroy(t.gameObject);
+                Destroy(t.gameObject);
             }
         }
     }
@@ -325,6 +345,7 @@ public enum State
     ENUMERATED,
     CONNECTING,
     CONNECTED,
+    SERVICESELECTED,
     DISCONNECTING,
     DISCONNECTED,
     SHOWINGCHARACTERISTICS,

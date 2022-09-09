@@ -6,6 +6,7 @@ public class BLEManager : Singleton<BLEManager>
 {
     // The selected device we are connecting with.
     private string selectedDeviceId;
+    private string selectedDeviceName;
     private string selectedServiceId;
     private string characteristicId;
     private bool subscribed;
@@ -106,5 +107,15 @@ public class BLEManager : Singleton<BLEManager>
     public string getCharacteristicId()
     {
         return characteristicId;
+    }
+
+    public void SetDeviceName(string name)
+    {
+        selectedDeviceName = name;
+    }
+    
+    public string GetDeviceName()
+    {
+        return selectedDeviceName;
     }
 } 
