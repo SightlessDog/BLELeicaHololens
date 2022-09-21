@@ -1,6 +1,13 @@
 # Created by https://www.toptal.com/developers/gitignore/api/unity
 # Edit at https://www.toptal.com/developers/gitignore?templates=unity
 .idea
+
+# custom ignores
+Assets/Plugins/opencv_world460.dll
+Assets/Plugins/opencv_world460.dll.meta
+Assets/Plugins/opencv_world460x64.dll
+Assets/Plugins/opencv_world460x64.dll.meta
+
 ### Unity ###
 # This .gitignore file should be placed at the root of your Unity project directory
 #

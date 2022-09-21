@@ -1,5 +1,4 @@
-﻿#if false
-using AOT;
+﻿using AOT;
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -12,7 +11,7 @@ public class DebugCPP : MonoBehaviour
         RegisterDebugCallback(OnDebugCallback);
     }
     
-    [DllImport("BleWinrtDll.dll", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("OpenCvUnityDllx64.dll", CallingConvention = CallingConvention.Cdecl)]
     static extern void RegisterDebugCallback(debugCallback cb);
     //Create string param callback delegate
     delegate void debugCallback(IntPtr request, int color, int size);
@@ -35,4 +34,3 @@ public class DebugCPP : MonoBehaviour
         UnityEngine.Debug.Log(debug_string);
     }
 }
-#endif

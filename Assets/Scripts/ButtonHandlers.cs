@@ -27,7 +27,7 @@ public class ButtonHandlers : MonoBehaviour
 
     readonly Dictionary<string, Dictionary<string, string>> devices =
         new Dictionary<string, Dictionary<string, string>>();
-    
+
     // A unity defined script method.  Called when the script object is first created.
     public void Start()
     {
@@ -58,7 +58,7 @@ public class ButtonHandlers : MonoBehaviour
                     if (res.isConnectableUpdated)
                         devices[res.id]["isConnectable"] = res.isConnectable.ToString();
                     // consider only devices which have a name and which are connectable
-                    if (devices[res.id]["name"] != "" && devices[res.id]["name"].Contains("DISTO") &&
+                    if (
                         devices[res.id]["isConnectable"] == "True" && !deviceShown)
                     {
                         deviceShown = true;
@@ -190,7 +190,7 @@ public class ButtonHandlers : MonoBehaviour
 
     public void SetDeviceId(GameObject data)
     {
-        BLEManager.Instance.SetDeviceName(data.GetComponentInChildren<TextMeshPro>().text); 
+        BLEManager.Instance.SetDeviceName(data.GetComponentInChildren<TextMeshPro>().text);
         BLEManager.Instance.SetDeviceId(data.name);
         GameObject.Find("Connect").GetComponent<Interactable>().enabled = true;
         UpdateAppState(State.ENUMERATED);
@@ -213,6 +213,7 @@ public class ButtonHandlers : MonoBehaviour
             BLEManager.Instance.setSubscribed(false);
             BLEManager.Instance.setCustomLeicaValue(false);
         }
+
         UpdateAppState(State.SERVICESELECTED);
     }
 
@@ -277,10 +278,12 @@ public class ButtonHandlers : MonoBehaviour
         {
             NotificationManager.Instance.SetNewNotification("Laser went off");
         }
+
         if (res == Commands.LaserOn)
         {
             NotificationManager.Instance.SetNewNotification("Laser went on");
         }
+
         string value = Util.GetEnumMemberAttrValue(typeof(Commands), res);
         byte[] payload = Encoding.ASCII.GetBytes(value);
         BleApi.BLEData toSend = new BleApi.BLEData();
@@ -301,8 +304,9 @@ public class ButtonHandlers : MonoBehaviour
                     Subscribe(pair.Key);
                     Debug.Log("Pair value is " + pair.Key);
                 }
-            }    
+            }
         }
+
         // no error code available in non-blocking mode
         BleApi.SendData(in toSend, false);
     }

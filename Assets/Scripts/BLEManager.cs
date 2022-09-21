@@ -5,6 +5,7 @@ using UnityEngine;
 public class BLEManager : Singleton<BLEManager>
 {
     // The selected device we are connecting with.
+    private string filePath;
     private string selectedDeviceId;
     private string selectedDeviceName;
     private string selectedServiceId;
@@ -117,5 +118,15 @@ public class BLEManager : Singleton<BLEManager>
     public string GetDeviceName()
     {
         return selectedDeviceName;
+    }
+
+    public string GetFilePath()
+    {
+        return filePath;
+    }
+
+    public void SetFilePath(string path)
+    {
+        filePath = path;
     }
 } 
