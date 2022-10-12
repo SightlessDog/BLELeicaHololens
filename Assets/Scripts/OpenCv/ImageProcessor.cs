@@ -7,17 +7,14 @@ public class ImageProcessor
 #else
     const string Opencvunitydll = "OpenCvUnityDll.dll";
 #endif
-    
-    public struct Center
+
+    public struct Output
     {
         public float x;
         public float y;
-    };
-      
-    
-    [DllImport(Opencvunitydll, EntryPoint = "ProcessFrame")]
-    private static extern byte[] ProcessFrame();
-    
+        public float z;
+    }
+
     [DllImport(Opencvunitydll, EntryPoint = "ProcessImage", CharSet = CharSet.Unicode)]
-    public static extern Center ProcessImage(string filePath);
+    public static extern Output ProcessImage(string filePath, string modelPath, string patternPath, string classListPath);
 }

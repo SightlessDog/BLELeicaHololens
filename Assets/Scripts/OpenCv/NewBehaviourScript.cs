@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Windows.WebCam;
@@ -7,13 +8,30 @@ using UnityEngine.Windows.WebCam;
 public class NewBehaviourScript : MonoBehaviour
 {
 #if UNITY_EDITOR
-    private string filePath = "C://image/test.jpg";
+    private string filePath = "C://Users/ElyessEleuch/Desktop/projects/HOBLE/Assets/Image/test.jpg";
+    private string modelPath;
+    private string patternPath;
+    private string classListPath;
+    private string testImagePath;
 #else
     private string filePath;
+    private string modelPath;
+    private string patternPath;
+    private string classListPath;
 #endif
     void Start()
     {
+        modelPath = Path.Combine(Application.streamingAssetsPath, "best.onnx");
+        patternPath = Path.Combine(Application.streamingAssetsPath, "pattern.jpg");
+        classListPath = Path.Combine(Application.streamingAssetsPath, "classes.txt");
+#if UNITY_EDITOR
+        testImagePath = Path.Combine(Application.streamingAssetsPath, "test.jpg");
+        Debug.Log("gonna send req");
+        ImageProcessor.Output center = ImageProcessor.ProcessImage(testImagePath, modelPath, patternPath, classListPath);
+        Debug.Log("Bla bla car  " + center.x + " " + center.y + " " + center.z);
+#else
         PhotoCapture.CreateAsync(false, OnPhotoCaptureCreated);
+#endif
     }
 
     private PhotoCapture photoCaptureObject = null;
@@ -45,10 +63,10 @@ public class NewBehaviourScript : MonoBehaviour
     {
         if (result.success)
         {
+            Debug.Log("Photo Mode started success");
             string filename = string.Format(@"CapturedImage{0}_n.jpg", Time.time);
             filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
             photoCaptureObject.TakePhotoAsync(filePath, PhotoCaptureFileOutputFormat.JPG, OnCapturedPhotoToDisk);
-            //photoCaptureObject.TakePhotoAsync(OnCapturedPhotoToMemory);
         }
         else
         {
@@ -60,11 +78,9 @@ public class NewBehaviourScript : MonoBehaviour
     {
         if (result.success)
         {
-            Debug.Log("Saved Photo to disk!");
-            Debug.Log("from unity file path is " + filePath);
-            ImageProcessor.Center center = ImageProcessor.ProcessImage(filePath);
+            ImageProcessor.Output center = ImageProcessor.ProcessImage(filePath, modelPath, patternPath, classListPath);
             Debug.Log("Bla bla car " + center.x + " " + center.y);
-            NotificationManager.Instance.SetNewNotification("center was detected " + center.x + " " + center.y);
+            //NotificationManager.Instance.SetNewNotification("center was detected " + center.tvec + " " + center.angles);
             photoCaptureObject.StopPhotoModeAsync(OnStoppedPhotoMode);
         }
         else
