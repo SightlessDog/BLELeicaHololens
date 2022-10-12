@@ -78,6 +78,7 @@ public class NewBehaviourScript : MonoBehaviour
     {
         if (result.success)
         {
+            Debug.Log("gonna send request");
             ImageProcessor.Output center = ImageProcessor.ProcessImage(filePath, modelPath, patternPath, classListPath);
             Debug.Log("Bla bla car " + center.x + " " + center.y);
             //NotificationManager.Instance.SetNewNotification("center was detected " + center.tvec + " " + center.angles);
