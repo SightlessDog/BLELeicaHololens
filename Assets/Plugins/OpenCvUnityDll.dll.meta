@@ -65,7 +65,7 @@ PluginImporter:
       enabled: 1
       settings:
         CPU: ARM64
-        DontProcess: true
+        DontProcess: false
         PlaceholderPath: 
         SDK: UWP
         ScriptingBackend: AnyScriptingBackend

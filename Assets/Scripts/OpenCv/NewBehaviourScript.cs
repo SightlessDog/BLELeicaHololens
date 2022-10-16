@@ -22,13 +22,13 @@ public class NewBehaviourScript : MonoBehaviour
     void Start()
     {
         modelPath = Path.Combine(Application.streamingAssetsPath, "best.onnx");
-        patternPath = Path.Combine(Application.streamingAssetsPath, "pattern.jpg");
+        patternPath = Path.Combine(Application.streamingAssetsPath, "marker.jpg");
         classListPath = Path.Combine(Application.streamingAssetsPath, "classes.txt");
 #if UNITY_EDITOR
-        testImagePath = Path.Combine(Application.streamingAssetsPath, "test.jpg");
+        testImagePath = Path.Combine(Application.streamingAssetsPath, "img2.jpg");
         Debug.Log("gonna send req");
-        ImageProcessor.Output center = ImageProcessor.ProcessImage(testImagePath, modelPath, patternPath, classListPath);
-        Debug.Log("Bla bla car  " + center.x + " " + center.y + " " + center.z);
+        ImageProcessor.ProcessImage(testImagePath, modelPath, patternPath, classListPath);
+        //Debug.Log("Bla bla car  " + center.x + " " + center.y + " " + center.z);
 #else
         PhotoCapture.CreateAsync(false, OnPhotoCaptureCreated);
 #endif
@@ -79,9 +79,7 @@ public class NewBehaviourScript : MonoBehaviour
         if (result.success)
         {
             Debug.Log("gonna send request");
-            ImageProcessor.Output center = ImageProcessor.ProcessImage(filePath, modelPath, patternPath, classListPath);
-            Debug.Log("Bla bla car " + center.x + " " + center.y);
-            //NotificationManager.Instance.SetNewNotification("center was detected " + center.tvec + " " + center.angles);
+            ImageProcessor.ProcessImage(filePath, modelPath, patternPath, classListPath);
             photoCaptureObject.StopPhotoModeAsync(OnStoppedPhotoMode);
         }
         else
