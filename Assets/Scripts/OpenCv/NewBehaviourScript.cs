@@ -64,7 +64,7 @@ public class NewBehaviourScript : MonoBehaviour
         if (result.success)
         {
             Debug.Log("Photo Mode started success");
-            string filename = string.Format(@"CapturedImage{0}_n.jpg", Time.time);
+            string filename = string.Format("test.jpg");
             filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
             photoCaptureObject.TakePhotoAsync(filePath, PhotoCaptureFileOutputFormat.JPG, OnCapturedPhotoToDisk);
         }
