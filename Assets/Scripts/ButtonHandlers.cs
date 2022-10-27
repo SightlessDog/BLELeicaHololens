@@ -23,11 +23,12 @@ public class ButtonHandlers : MonoBehaviour
     bool isScanningCharacteristics;
     bool writingToDevice;
     bool deviceShown;
+    private ImageProcessor imageProcessor;
     public static event Action<State> onStateChanged;
 
     readonly Dictionary<string, Dictionary<string, string>> devices =
         new Dictionary<string, Dictionary<string, string>>();
-    
+
     // A unity defined script method.  Called when the script object is first created.
     public void Start()
     {
@@ -141,6 +142,10 @@ public class ButtonHandlers : MonoBehaviour
                 if (BLEManager.Instance.getCustomLeicaValue())
                 {
                     float value = BitConverter.ToSingle(res.buf, 0);
+                    Debug.Log("trigger shot");
+                    imageProcessor.TriggerShot(value);
+                    Debug.Log("shot triggered");
+                    NotificationManager.Instance.SetNewNotification("Locating Leica in the space");
                     //TODO: Make sure the unit is dynamic
                     deviceResponse.GetComponent<TextMeshPro>()
                         .SetText("Value Read from the device is : " + value + " m.");
