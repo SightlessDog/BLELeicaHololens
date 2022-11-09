@@ -8,7 +8,6 @@ using TMPro;
 
 public class ButtonHandlers : MonoBehaviour
 {
-    TextMeshPro feedbackText;
     public GameObject DeviceConnectButton;
     public GameObject ServiceButton;
     public GameObject CharacteristicsButton;
@@ -23,7 +22,7 @@ public class ButtonHandlers : MonoBehaviour
     bool isScanningCharacteristics;
     bool writingToDevice;
     bool deviceShown;
-    private ImageProcessor imageProcessor;
+    TextMeshPro feedbackText;
     public static event Action<State> onStateChanged;
 
     readonly Dictionary<string, Dictionary<string, string>> devices =
@@ -142,10 +141,9 @@ public class ButtonHandlers : MonoBehaviour
                 if (BLEManager.Instance.getCustomLeicaValue())
                 {
                     float value = BitConverter.ToSingle(res.buf, 0);
-                    Debug.Log("trigger shot");
-                    imageProcessor.TriggerShot(value);
-                    Debug.Log("shot triggered");
-                    NotificationManager.Instance.SetNewNotification("Locating Leica in the space");
+                    ImageProcessor.Instance.TriggerShot(value);
+                    //ImageProcessor.Instance.TriggerShot();
+                    NotificationManager.Instance.SetNewNotification("Locating Leica in the space, please hold your head still for a second");
                     //TODO: Make sure the unit is dynamic
                     deviceResponse.GetComponent<TextMeshPro>()
                         .SetText("Value Read from the device is : " + value + " m.");
@@ -158,6 +156,8 @@ public class ButtonHandlers : MonoBehaviour
                 }
             }
         }
+        
+        //ShapeBuilder.Instance.BuildShape();
     }
 
     public void OnEnumerateClicked()

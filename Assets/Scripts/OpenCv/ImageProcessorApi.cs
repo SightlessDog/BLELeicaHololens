@@ -9,5 +9,5 @@ public class ImageProcessorApi
 #endif
 
     [DllImport(Opencvunitydll, EntryPoint = "ProcessImage", CharSet = CharSet.Unicode)]
-    public static extern void ProcessImage(string filePath, float[] r, float[] t);
+    public static extern bool ProcessImage(string filePath, float[] r, float[] t);
 }
