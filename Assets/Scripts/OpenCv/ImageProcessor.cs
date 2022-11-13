@@ -186,7 +186,7 @@ public class ImageProcessor : Singleton<ImageProcessor>
                 
                 // NotificationManager.Instance.SetNewNotification(
                 //     "Aruco Detected at " + CvUtils.GetVectorFromMatrix(transformUnityWorld), false);
-                if (startingPosition.x < 0)
+                /*if (startingPosition.x < 0)
                 {
                     startingPosition.x -= frontFaceOffset;
                     startingPosition2.x -= frontFaceOffset;
@@ -201,7 +201,7 @@ public class ImageProcessor : Singleton<ImageProcessor>
                 startingPosition.y += frontFaceOffset;
                 startingPosition2.y += frontFaceOffset;
                 startingPosition3.y += frontFaceOffset;
-                startingPosition.z -= frontFaceOffset;
+                startingPosition.z -= frontFaceOffset;*/
                 startingPosition2.z = startingPosition.z;
                 startingPosition3.z = startingPosition.z;
                 TreatPoints(startingPosition, startingPosition2, startingPosition3,
