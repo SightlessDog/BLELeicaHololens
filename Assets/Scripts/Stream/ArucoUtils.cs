@@ -8,7 +8,7 @@ public abstract class ArUcoUtils
 {
     // https://docs.opencv.org/trunk/dc/df7/dictionary_8hpp.html
     public enum ArUcoDictionaryName {
-        DICT_4X4_40 = 0,
+        DICT_4X4_50 = 0,
         DICT_4X4_100,
         DICT_4X4_250,
         DICT_4X4_1000,

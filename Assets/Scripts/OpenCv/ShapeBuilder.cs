@@ -1,5 +1,9 @@
+ using System;
  using UnityEngine;
  using System.Collections.Generic;
+ using System.Linq;
+ using Vector3 = UnityEngine.Vector3;
+ using Vector2 = UnityEngine.Vector2;
 
  public class ShapeBuilder : Singleton<ShapeBuilder> 
  {
@@ -16,91 +20,20 @@
      {
          poly.Add(point);
      }
-     
-     public void BuildShape () {
-         if (poly == null || poly.Count < 3) {
-             //Debug.Log ("Define 2D polygon in 'poly' in the the Inspector");
-             return;
-         }
-         
-         MeshFilter mf = gameObject.AddComponent<MeshFilter>();
-         
-         Mesh mesh = new Mesh();
-         mf.mesh = mesh;
-         
-         Renderer rend = gameObject.AddComponent<MeshRenderer>();
-         rend.material = mat;
- 
-         Vector3 center = FindCenter();
-                 
-         Vector3[] vertices = new Vector3[poly.Count+1];
-         //vertices[0] = Vector3.zero;
-         
-         for (int i = 0; i < poly.Count; i++)
+
+     public void BuildShapeAndReturnJson()
+     {
+         NotificationManager.Instance.SetNewNotification("Going to save the json file");
+         Room room = new Room();
+         List<Vector3> points = getPolys().OrderBy(x => Math.Atan2(x.x, x.y)).ToList();
+         Vector3 firstPoint = points[0];
+         foreach (Vector3 point in points)
          {
-             var point = poly[i];
-             point.y = 0.0f;
-             poly[i] = point;
-             vertices[i] = poly[i] - center;
+             room.points.Add(new Vector2(point.x - firstPoint.x, point.z - firstPoint.z));
          }
-         
-         mesh.vertices = vertices;
-         
-         int[] triangles = new int[poly.Count*3];
-         
-         for (int i = 0; i < poly.Count-1; i++) {
-             triangles[i*3] = i+2;
-             triangles[i*3+1] = 0;
-             triangles[i*3+2] = i + 1;
-         }
-         
-         triangles[(poly.Count-1)*3] = 1;
-         triangles[(poly.Count-1)*3+1] = 0;
-         triangles[(poly.Count-1)*3+2] = poly.Count;
-         
-         mesh.triangles = triangles;
-         mesh.uv = BuildUVs(vertices);
- 
-         mesh.RecalculateBounds();
-         mesh.RecalculateNormals();
- 
-     }
-     
-     private Vector3 FindCenter() {
-         Vector3 center = Vector3.zero;
-         foreach (Vector3 v3 in poly) {
-             center += v3;    
-         }
-         return center / poly.Count;
-     }
-     
-     private Vector2[] BuildUVs(Vector3[] vertices) {
-         
-         float xMin = Mathf.Infinity;
-         float yMin = Mathf.Infinity;
-         float xMax = -Mathf.Infinity;
-         float yMax = -Mathf.Infinity;
-         
-         foreach (Vector3 v3 in vertices) {
-             if (v3.x < xMin)
-                 xMin = v3.x;
-             if (v3.z < yMin)
-                 yMin = v3.z;
-             if (v3.x > xMax)
-                 xMax = v3.x;
-             if (v3.z > yMax)
-                 yMax = v3.z;
-         }
-         
-         float xRange = xMax - xMin;
-         float yRange = yMax - yMin;
-             
-         Vector2[] uvs = new Vector2[vertices.Length];
-         for (int i = 0; i < vertices.Length; i++) {
-             uvs[i].x = (vertices[i].x - xMin) / xRange;
-             uvs[i].y = (vertices[i].y - yMin) / yRange;
-             
-         }
-         return uvs;
+         string json = JsonUtility.ToJson(room);
+         NotificationManager.Instance.SetNewNotification("Json file saved");
+         string jsonFilePath = Application.persistentDataPath + "/room.json";
+         System.IO.File.WriteAllText(jsonFilePath, json);
      }
  }

@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.WSA;
 using UnityEngine.XR.WSA.Input;
+using Microsoft.MixedReality.OpenXR;
 
 #if ENABLE_WINMD_SUPPORT
 using Windows.Graphics.Imaging;
@@ -23,7 +24,7 @@ public class NetworkBehaviour : MonoBehaviour
     /// <summary>
     /// Selection of desired ArUco dictionary for marker tracking and the tracking type
     /// </summary>
-    public ArUcoUtils.ArUcoDictionaryName ArUcoDictionaryName = ArUcoUtils.ArUcoDictionaryName.DICT_6X6_50;
+    public ArUcoUtils.ArUcoDictionaryName ArUcoDictionaryName = ArUcoUtils.ArUcoDictionaryName.DICT_4X4_50;
     public ArUcoUtils.ArUcoTrackingType ArUcoTrackingType = ArUcoUtils.ArUcoTrackingType.Markers;
     public ArUcoUtils.ArUcoTrackingType ArUcoTrackingTypeAfterCalibration = ArUcoUtils.ArUcoTrackingType.CustomBoard;
     
@@ -117,7 +118,7 @@ public class NetworkBehaviour : MonoBehaviour
             switch (HMDCalibrationType)
             {
                 case ArUcoUtils.HMDCalibrationType.UserDefined:
-                    //CollectPointCorrespondences.HideCalibrationReticle();
+                    CollectPointCorrespondences.HideCalibrationReticle();
                     _HMDCalibrationStatus = ArUcoUtils.HMDCalibrationStatus.NotCalibrating;
                     Debug.Log("Start: HMDCalibrationType: User Defined, not calibrating.");
                     break;
@@ -243,7 +244,7 @@ public class NetworkBehaviour : MonoBehaviour
             try
             {
                 _unityCoordinateSystem = 
-                    SpatialLocator.GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation().CoordinateSystem;
+                    PerceptionInterop.GetSceneCoordinateSystem(Pose.identity) as SpatialCoordinateSystem;
                 NotificationManager.Instance.SetNewNotification("Acquired unity coordinate system");
                 Debug.Log("Successfully cached pointer to Unity spatial coordinate system.");
             }
@@ -385,7 +386,7 @@ public class NetworkBehaviour : MonoBehaviour
                     break;
 
                 case ArUcoUtils.ArUcoTrackingType.CustomBoard:
-                    //DetectBoard(softwareBitmap, calibParams);
+                    DetectBoard(softwareBitmap, calibParams);
                     break;
 
                 case ArUcoUtils.ArUcoTrackingType.None:
@@ -399,6 +400,75 @@ public class NetworkBehaviour : MonoBehaviour
         }
         // Dispose of the bitmap
         softwareBitmap?.Dispose();
+    }
+    
+    private void DetectBoard(SoftwareBitmap softwareBitmap, OpenCVRuntimeComponent.CameraCalibrationParams calibParams)
+    {
+        UnityEngine.WSA.Application.InvokeOnAppThread(() =>
+        {
+            // Remove world anchor from game object
+            if (_isWorldAnchored)
+            {
+                //DestroyImmediate(TrackingGos.BoardGoLeftEye.GetComponent<WorldAnchor>());
+                //DestroyImmediate(TrackingGos.BoardGoRightEye.GetComponent<WorldAnchor>());
+                _isWorldAnchored = false;
+            }
+
+        }, false);
+
+        // Get marker detections from opencv component
+        var board = CvUtils.DetectBoard(softwareBitmap, calibParams);
+
+        if (board.IsDetected)
+        {
+            // Get the transform from C++ component and format for Unity coordinate system
+            var transformUnityCamera = ArUcoUtils.GetTransformInUnityCamera(
+                ArUcoUtils.Vec3FromFloat3(board.Position),
+                ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(board.Rotation)));
+            Debug.Log($"transformUnityCamera: {transformUnityCamera}");
+
+            // Camera view transform used for transform chain
+            var c2w_unity = GetViewToUnityTransform(_frameCoordinateSystem);
+            Debug.Log($"c2w_unity: {c2w_unity}");
+
+            // Right and left eye transforms, apply user defined transform in chain
+            var transformUnityWorldLeft = c2w_unity * PredefinedTransform.UserDefinedTransformLeftEye * transformUnityCamera;
+            var transformUnityWorldRight = c2w_unity * PredefinedTransform.UserDefinedTransformRightEye * transformUnityCamera;
+
+            // Update the UI with result
+            UnityEngine.WSA.Application.InvokeOnAppThread(() =>
+            {
+                //StatusBlock.text = $"Detected: aruco board";
+                NotificationManager.Instance.SetNewNotification("Detected: aruco board");
+                // Left eye1
+                TrackingGos.BoardGoLeftEye.transform.SetPositionAndRotation(
+                    ArUcoUtils.GetVectorFromMatrix(transformUnityWorldLeft),
+                    ArUcoUtils.GetQuatFromMatrix(transformUnityWorldLeft));
+
+                // Right eye
+                TrackingGos.BoardGoRightEye.transform.SetPositionAndRotation(
+                    ArUcoUtils.GetVectorFromMatrix(transformUnityWorldRight),
+                    ArUcoUtils.GetQuatFromMatrix(transformUnityWorldRight));
+            }, false);
+        }
+
+        // If no markers in scene, anchor marker to last position of game object
+        // if we have not already anchored the game objects
+        else
+        {
+            UnityEngine.WSA.Application.InvokeOnAppThread(() =>
+            {
+                //StatusBlock.text = $"No board detected";
+                NotificationManager.Instance.SetNewNotification("No Board detected");
+                // Add a world anchor to the attached gameobject
+                //TrackingGos.BoardGoLeftEye.AddComponent<WorldAnchor>();
+                //TrackingGos.BoardGoRightEye.AddComponent<WorldAnchor>();
+                _isWorldAnchored = true;
+
+            }, false);
+
+            Debug.Log("DetectMarkers: updated world anchor position.");
+        }
     }
 #endif
     
@@ -437,10 +507,10 @@ public class NetworkBehaviour : MonoBehaviour
                     
                     case ArUcoUtils.HMDCalibrationStatus.StartedCalibration:
                         // Get the average transform in unity camera space
-                        /*TransformUnityCamera = GetAverageTransform(
+                        TransformUnityCamera = GetAverageTransform(
                             ArUcoUtils.Vec3FromFloat3(marker.Position),
                             ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(marker.Rotation)),
-                            NumMovingAvgPts);*/
+                            NumMovingAvgPts);
                         break;
                     
                     case ArUcoUtils.HMDCalibrationStatus.CompletedCalibration:
@@ -451,23 +521,25 @@ public class NetworkBehaviour : MonoBehaviour
                 }
                 Debug.Log($"transformUnityCamera: {TransformUnityCamera}");
 
+                Debug.Log("[DEBUG] EE position of the marker is " + marker.Position);
+
                 // Camera view transform used for transform chain
                 CameraToWorldUnity = GetViewToUnityTransform(_frameCoordinateSystem);
                 Debug.Log($"c2w_unity: {CameraToWorldUnity}");
 
                 // Right and left eye transforms, apply user defined transform in chain
-                var transformUnityWorldLeft = CameraToWorldUnity * PredefinedTransform.UserDefinedTransformLeftEye * TransformUnityCamera;
-                var transformUnityWorldRight = CameraToWorldUnity * PredefinedTransform.UserDefinedTransformRightEye * TransformUnityCamera;
+                var transformUnityWorldLeft = CameraToWorldUnity * TransformUnityCamera;
+                var transformUnityWorldRight = CameraToWorldUnity * PredefinedTransform.UserDefinedTransformRightEye *TransformUnityCamera;
 
                 // Update the UI with result
                 UnityEngine.WSA.Application.InvokeOnAppThread(() =>
                 {
-                     NotificationManager.Instance.SetNewNotification("Detected: " + markers.Count + " markers");
                     // Left eye
                     TrackingGos.MarkerGoLeftEye.transform.SetPositionAndRotation(
                         ArUcoUtils.GetVectorFromMatrix(transformUnityWorldLeft),
                         ArUcoUtils.GetQuatFromMatrix(transformUnityWorldLeft));
-
+                    Positioner.Instance.SetPosition(ArUcoUtils.GetVectorFromMatrix(transformUnityWorldLeft));
+                    Positioner.Instance.SetRotation(ArUcoUtils.GetQuatFromMatrix(transformUnityWorldLeft));
                     // Right eye
                     TrackingGos.MarkerGoRightEye.transform.SetPositionAndRotation(
                         ArUcoUtils.GetVectorFromMatrix(transformUnityWorldRight),
@@ -483,7 +555,6 @@ public class NetworkBehaviour : MonoBehaviour
         {
             UnityEngine.WSA.Application.InvokeOnAppThread(() =>
             {
-                NotificationManager.Instance.SetNewNotification("No Markers detected");
                 // Add a world anchor to the attached gameobject
                 //TrackingGos.MarkerGoLeftEye.AddComponent<WorldAnchor>();
                 //TrackingGos.MarkerGoRightEye.AddComponent<WorldAnchor>();
@@ -536,4 +607,39 @@ public class NetworkBehaviour : MonoBehaviour
         return viewToUnity;
     }
 #endif
+    
+    /// <summary>
+    /// Get the average transform of the head relative camera points
+    /// Exclude zero values from point correspondence holder.
+    /// </summary>
+    /// <param name="t"></param>
+    /// <param name="r"></param>
+    /// <returns></returns>
+    Matrix4x4 GetAverageTransform(
+        Vector3 t,
+        Quaternion r,
+        int numMovingAvgPts)
+    {
+        // Carry an average transform value for head-relative point locations
+        // If we've reached queue length, remove a point
+        if (_posCamQ.Count == numMovingAvgPts)
+        {
+            // Dequeue element
+            _ = _posCamQ.Dequeue();
+            _ = _rotCamQ.Dequeue();
+        }
+
+        // Enqueue the current point
+        _posCamQ.Enqueue(t);
+        _rotCamQ.Enqueue(r);
+
+        // Get average of this array
+        var avgP = ArUcoUtils.ArrayAvg(_posCamQ.ToArray());
+
+        // Get average of rotations
+        var avgR = ArUcoUtils.CalcAverageQuaternion(_rotCamQ.ToArray());
+
+        // Return the transform in unity space
+        return ArUcoUtils.GetTransformInUnityCamera(avgP, avgR);
+    }
 }

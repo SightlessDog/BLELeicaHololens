@@ -138,11 +138,11 @@ public class ButtonHandlers : MonoBehaviour
             BleApi.BLEData res = new BleApi.BLEData();
             while (BleApi.PollData(out res, false))
             {
+                Debug.Log("[DEBUG] EE it goes inside the while loop");
                 if (BLEManager.Instance.getCustomLeicaValue())
                 {
                     float value = BitConverter.ToSingle(res.buf, 0);
                     ImageProcessor.Instance.TriggerShot(value);
-                    //ImageProcessor.Instance.TriggerShot();
                     NotificationManager.Instance.SetNewNotification("Locating Leica in the space, please hold your head still for a second");
                     //TODO: Make sure the unit is dynamic
                     deviceResponse.GetComponent<TextMeshPro>()
