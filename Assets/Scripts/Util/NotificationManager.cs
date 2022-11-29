@@ -74,11 +74,5 @@ public class NotificationManager : Singleton<NotificationManager>
                 "You are now successfully connected to "  +  BLEManager.Instance.GetDeviceName() + ", feel free to choose a service");
             return;
         }
-
-        if (state == State.SERVICESELECTED)
-        {
-            SetNewNotification(
-                "Don't forget to click on characteristics button to show the possibilities available to you");
-        }
     }
 }

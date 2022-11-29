@@ -109,6 +109,7 @@ public class ButtonHandlers : MonoBehaviour
         if (isScanningCharacteristics)
         {
             BleApi.Characteristic res = new BleApi.Characteristic();
+            Debug.Log("[DEBUG] EE characs");
             do
             {
                 status = BleApi.PollCharacteristic(out res, false);
@@ -138,7 +139,6 @@ public class ButtonHandlers : MonoBehaviour
             BleApi.BLEData res = new BleApi.BLEData();
             while (BleApi.PollData(out res, false))
             {
-                Debug.Log("[DEBUG] EE it goes inside the while loop");
                 if (BLEManager.Instance.getCustomLeicaValue())
                 {
                     float value = BitConverter.ToSingle(res.buf, 0);
@@ -184,11 +184,13 @@ public class ButtonHandlers : MonoBehaviour
         isScanningCharacteristics = true;
         isScanningServices = false;
         isScanningDevices = false;
+        characteristicsList = GameObject.Find("CharacteristicsGrid");
         foreach (Transform t in characteristicsList.transform)
         {
-            Destroy(t.gameObject);
+            if (t)
+                Destroy(t.gameObject);
+            else continue;
         }
-
         BleApi.ScanCharacteristics(BLEManager.Instance.GetDeviceId(), BLEManager.Instance.GetServiceId());
         UpdateAppState(State.SHOWINGCHARACTERISTICS);
     }
@@ -205,7 +207,6 @@ public class ButtonHandlers : MonoBehaviour
     {
         BLEManager.Instance.SetServiceId(data.name);
         GameObject.Find("Connect").GetComponent<Interactable>().enabled = false;
-        GameObject.Find("ShowCharacs").GetComponent<Interactable>().enabled = true;
         GameObject.Find("Disconnect").GetComponent<Interactable>().enabled = true;
         // If it's "disto" device then we need another way to deal with the data we get
         if (BLEManager.Instance.getServiceList()[data.name]["name"].ToUpper().Contains("DISTO"))
@@ -218,7 +219,7 @@ public class ButtonHandlers : MonoBehaviour
             BLEManager.Instance.setSubscribed(false);
             BLEManager.Instance.setCustomLeicaValue(false);
         }
-        UpdateAppState(State.SERVICESELECTED);
+        ShowCharacteristics();
     }
 
     public void SetCharacteristicId(GameObject data)
@@ -271,8 +272,7 @@ public class ButtonHandlers : MonoBehaviour
             data,
             false);
     }
-
-    // TODO this needs refactoring
+    
     public void SendCommand(GameObject data)
     {
         string command = data.name;
@@ -296,7 +296,7 @@ public class ButtonHandlers : MonoBehaviour
         toSend.characteristicUuid = BLEManager.Instance.getCharacteristicId();
         for (int i = 0; i < payload.Length; i++)
             toSend.buf[i] = payload[i];
-        // TODO shame 
+        
         if (data.name.ToUpper() == "DISTANCE")
         {
             foreach (var pair in BLEManager.Instance.getCharacteristicsList())

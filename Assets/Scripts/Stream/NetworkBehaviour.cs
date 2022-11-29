@@ -118,7 +118,7 @@ public class NetworkBehaviour : MonoBehaviour
             switch (HMDCalibrationType)
             {
                 case ArUcoUtils.HMDCalibrationType.UserDefined:
-                    CollectPointCorrespondences.HideCalibrationReticle();
+                    //CollectPointCorrespondences.HideCalibrationReticle();
                     _HMDCalibrationStatus = ArUcoUtils.HMDCalibrationStatus.NotCalibrating;
                     Debug.Log("Start: HMDCalibrationType: User Defined, not calibrating.");
                     break;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class ImageProcessor : Singleton<ImageProcessor>
@@ -15,57 +16,119 @@ public class ImageProcessor : Singleton<ImageProcessor>
 
     private void TreatPoints(Vector3 position, Quaternion rotation, float length)
     {
-        //ShapeBuilder.Instance.addToPoly(position);
-        if (ShapeBuilder.Instance.getPolys().Count > 0)
+        if (ShapeBuilder.Instance.GetMeasurements().Count > 0)
         {
-            List<Vector3> existingPoints = ShapeBuilder.Instance.getPolys();
-            Vector3 finishPoint = position + rotation * new Vector3(1, 0, 0) * length;
+            List<Measurement> existingMeasurements = ShapeBuilder.Instance.GetMeasurements();
+            Vector3 finishPoint = position + rotation * Vector3.right * length;
+            bool bound = false;
 
-            foreach (var p in existingPoints)
+            foreach (var m in existingMeasurements)
             {
-                if ((position.x <= p.x + pointThreshold && position.x >= p.x - pointThreshold) &&
-                    (position.y <= p.y + pointThreshold && position.y >= p.y - pointThreshold) &&
-                    (position.z <= p.z + pointThreshold && position.z >= p.z - pointThreshold))
+                if (Vector3.Distance(m.GetPoints()[0], position) < pointThreshold)
                 {
                     NotificationManager.Instance.SetNewNotification("binding start point");
-                    GameObject secPoi = Instantiate(pointPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-                    secPoi.transform.localScale = new Vector3(this.length, 0.01f, 0.01f);
-                    secPoi.transform.position = p;
-                    secPoi.transform.rotation = rotation;
-                    ShapeBuilder.Instance.addToPoly(finishPoint);
-                }
-                else if ((finishPoint.x <= p.x + pointThreshold && finishPoint.x >= p.x - pointThreshold) &&
-                         (finishPoint.y <= p.y + pointThreshold && finishPoint.y >= p.y - pointThreshold) &&
-                         (finishPoint.z <= p.z + pointThreshold && finishPoint.z >= p.z - pointThreshold))
+                    GameObject secondPoint = Instantiate(pointPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                    secondPoint.name = secondPoint.name + ShapeBuilder.Instance.GetMeasurements().Count;
+                    var vector = secondPoint.transform.Find("Vec");
+                    var text = secondPoint.transform.Find("Length");
+                    text.GetComponentInChildren<TextMeshProUGUI>().SetText(length.ToString());
+                    vector.localScale = new Vector3(this.length, 0.01f, 0.01f);
+                    secondPoint.transform.position = m.GetPoints()[0];
+                    secondPoint.transform.rotation = rotation;
+                    List<Vector3> points = new List<Vector3>();
+                    points.Add(m.GetPoints()[0]);
+                    points.Add(finishPoint);
+                    ShapeBuilder.Instance.AddToMeasurements(new Measurement(secondPoint.name, points));
+                    bound = true;
+                    break;
+                } 
+                else if (Vector3.Distance(m.GetPoints()[1], position) < pointThreshold)
                 {
-                    NotificationManager.Instance.SetNewNotification("binding end popint");
-                    GameObject secPoi = Instantiate(pointPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-                    Vector3 secondPoint = p + rotation * new Vector3(-1, 0, 0) * length;
-                    secPoi.transform.localScale = new Vector3(-this.length, 0.01f, 0.01f);
-                    secPoi.transform.position = p;
-                    secPoi.transform.rotation = rotation;
-                    ShapeBuilder.Instance.addToPoly(secondPoint);
+                    NotificationManager.Instance.SetNewNotification("binding end point");
+                    GameObject secondPoint = Instantiate(pointPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                    secondPoint.name = secondPoint.name + ShapeBuilder.Instance.GetMeasurements().Count;
+                    var vector = secondPoint.transform.Find("Vec");
+                    var text = secondPoint.transform.Find("Length");
+                    text.GetComponentInChildren<TextMeshProUGUI>().SetText(length.ToString());
+                    vector.localScale = new Vector3(this.length, 0.01f, 0.01f);
+                    secondPoint.transform.position = m.GetPoints()[1];
+                    secondPoint.transform.rotation = rotation;
+                    List<Vector3> points = new List<Vector3>();
+                    points.Add(m.GetPoints()[1]);
+                    points.Add(finishPoint);
+                    ShapeBuilder.Instance.AddToMeasurements(new Measurement(secondPoint.name, points));
+                    bound = true;
+                    break;
                 }
-                else
+                else if (Vector3.Distance(m.GetPoints()[1], finishPoint) < pointThreshold)
                 {
-                    GameObject firstPoint = Instantiate(pointPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-                    firstPoint.transform.localScale = new Vector3(this.length, 0.01f, 0.01f);
-                    firstPoint.transform.position = position;
-                    firstPoint.transform.rotation = rotation;
-                    ShapeBuilder.Instance.addToPoly(position);
-                    ShapeBuilder.Instance.addToPoly(finishPoint);
+                    NotificationManager.Instance.SetNewNotification("binding end point");
+                    GameObject secondPoint = Instantiate(pointPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                    secondPoint.name = secondPoint.name + ShapeBuilder.Instance.GetMeasurements().Count;
+                    Vector3 point = m.GetPoints()[1] + rotation * Vector3.right * length;
+                    var vector = secondPoint.transform.Find("Vec");
+                    var text = secondPoint.transform.Find("Length");
+                    text.GetComponentInChildren<TextMeshProUGUI>().SetText(length.ToString());
+                    vector.localScale = new Vector3(-this.length, 0.01f, 0.01f);
+                    secondPoint.transform.position = m.GetPoints()[1];
+                    secondPoint.transform.rotation = rotation;
+                    List<Vector3> points = new List<Vector3>();
+                    points.Add(m.GetPoints()[1]);
+                    points.Add(point);
+                    ShapeBuilder.Instance.AddToMeasurements(new Measurement(secondPoint.name, points));
+                    bound = true;
+                    break;
+                } 
+                else if (Vector3.Distance(m.GetPoints()[0], finishPoint) < pointThreshold)
+                {
+                    NotificationManager.Instance.SetNewNotification("binding start point");
+                    GameObject secondPoint = Instantiate(pointPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                    secondPoint.name = secondPoint.name + ShapeBuilder.Instance.GetMeasurements().Count;
+                    var vector = secondPoint.transform.Find("Vec");
+                    var text = secondPoint.transform.Find("Length");
+                    text.GetComponentInChildren<TextMeshProUGUI>().SetText(length.ToString());
+                    vector.localScale = new Vector3(-this.length, 0.01f, 0.01f);
+                    secondPoint.transform.position = m.GetPoints()[0];
+                    secondPoint.transform.rotation = rotation;
+                    List<Vector3> points = new List<Vector3>();
+                    points.Add(m.GetPoints()[0]);
+                    points.Add(position);
+                    ShapeBuilder.Instance.AddToMeasurements(new Measurement(secondPoint.name, points));
+                    bound = true;
+                    break;
                 }
+            }
+            if (!bound)
+            {
+                GameObject firstPoint = Instantiate(pointPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                firstPoint.name = firstPoint.name + ShapeBuilder.Instance.getPolys().Count;
+                var vector = firstPoint.transform.Find("Vec");
+                var text = firstPoint.transform.Find("Length");
+                text.GetComponentInChildren<TextMeshProUGUI>().SetText(length + " m");
+                vector.localScale = new Vector3(this.length, 0.01f, 0.01f);
+                firstPoint.transform.position = new Vector3(position.x, position.y, position.z);
+                firstPoint.transform.rotation = rotation;
+                List<Vector3> points = new List<Vector3>();
+                points.Add(position);
+                points.Add(finishPoint);
+                ShapeBuilder.Instance.AddToMeasurements(new Measurement(firstPoint.name, points));
             }
         }
         else
         {
-            Vector3 finishPoint = position + rotation * new Vector3(1, 0, 0) * length;
             GameObject firstPoint = Instantiate(pointPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-            firstPoint.transform.localScale = new Vector3(this.length, 0.01f, 0.01f);
+            firstPoint.name = firstPoint.name + ShapeBuilder.Instance.getPolys().Count;
+            var vector = firstPoint.transform.Find("Vec");
+            var text = firstPoint.transform.Find("Length");
+            text.GetComponentInChildren<TextMeshProUGUI>().SetText(length + " m");
+            vector.localScale = new Vector3(this.length, 0.01f, 0.01f);
             firstPoint.transform.position = position;
             firstPoint.transform.rotation = rotation;
-            ShapeBuilder.Instance.addToPoly(position);
-            ShapeBuilder.Instance.addToPoly(finishPoint);
+            List<Vector3> points = new List<Vector3>();
+            points.Add(position);
+            Vector3 finishPoint = position + rotation * Vector3.right * length;
+            points.Add(finishPoint);
+            ShapeBuilder.Instance.AddToMeasurements(new Measurement(firstPoint.name, points));
         }
         
     }

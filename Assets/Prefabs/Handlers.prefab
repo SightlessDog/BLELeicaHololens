@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 249471959387093213}
   - component: {fileID: 249471959387093210}
+  - component: {fileID: -7508980150693361900}
+  - component: {fileID: 3453325095974828078}
   m_Layer: 0
   m_Name: Handlers
   m_TagString: Untagged
@@ -44,4 +46,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DeviceConnectButton: {fileID: 1542196697888924243, guid: 6101897655b0a1d47a3e11828f0fdbdd, type: 3}
-  _grid: {fileID: 3185433474246496488, guid: 810055b53d102364fa594c1f7563be5a, type: 3}
+  ServiceButton: {fileID: 1542196697888924243, guid: 4b80ad41cc36b064ca031ec5ae94069b, type: 3}
+  CharacteristicsButton: {fileID: 1542196697888924243, guid: a56b605fe57dd354eb381c9b7858ddac, type: 3}
+  CommandsList: {fileID: 0}
+  devicesList: {fileID: 3185433474246496486, guid: 810055b53d102364fa594c1f7563be5a, type: 3}
+  serviceList: {fileID: 3185433474246496486, guid: 810055b53d102364fa594c1f7563be5a, type: 3}
+  characteristicsList: {fileID: 3185433474246496486, guid: 810055b53d102364fa594c1f7563be5a, type: 3}
+  deviceResponse: {fileID: 0}
+--- !u!114 &-7508980150693361900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 249471959387093211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e7ebabfd1464221b20536d33de17c7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dialogPrefab: {fileID: 2680377478557818543, guid: ef376a22ac5b70740a60018485e8807e, type: 3}
+--- !u!114 &3453325095974828078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 249471959387093211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 594c3913309675145886ae4433b9c74f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

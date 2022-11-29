@@ -9,7 +9,24 @@
  {
      public Material mat;
      private List<Vector3> poly = new List<Vector3>();
+     private List<Measurement> measurements = new List<Measurement>();
      private int polyIndex = 0;
+
+     public void AddToMeasurements(Measurement measurement)
+     {
+         measurements.Add(measurement);
+     }
+
+     public void RemoveFromMeasurements(string name)
+     {
+         var item = measurements.Find(x => x.GetName() == name);
+         measurements.Remove(item);
+     }
+
+     public List<Measurement> GetMeasurements()
+     {
+         return measurements;
+     }
 
      public List<Vector3> getPolys()
      {
@@ -21,11 +38,29 @@
          poly.Add(point);
      }
 
+     public void removeFromPoly(Vector3 point)
+     {
+         bool removed = poly.Remove(point);
+         if (removed)
+         {
+             Debug.Log("point " + point + "deleted");
+             NotificationManager.Instance.SetNewNotification("point " + point + "deleted");
+         }
+     }
+
      public void BuildShapeAndReturnJson()
      {
          NotificationManager.Instance.SetNewNotification("Going to save the json file");
          Room room = new Room();
-         List<Vector3> points = getPolys().OrderBy(x => Math.Atan2(x.x, x.y)).ToList();
+         List<Vector3> points = new List<Vector3>();
+         Debug.Log("EE for each");
+         foreach (var m in measurements) 
+         {
+             points.Add(m.GetPoints()[0]);
+             points.Add(m.GetPoints()[1]);
+         }
+         Debug.Log("EE after for each");
+         points.OrderBy(x => Math.Atan2(x.x, x.z)).ToList();
          Vector3 firstPoint = points[0];
          foreach (Vector3 point in points)
          {

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: New MixedRealityExperienceSettingsProfile 1
   m_EditorClassIdentifier: 
   isCustomProfile: 1
-  targetExperienceScale: 4
+  targetExperienceScale: 0
   contentOffset: 0

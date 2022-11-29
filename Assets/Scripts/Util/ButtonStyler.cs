@@ -9,7 +9,6 @@ public class ButtonStyler : MonoBehaviour
     [SerializeField] private GameObject connectButton;
     [SerializeField] private GameObject disconnectButton;
     [SerializeField] private GameObject enumerateButton;
-    [SerializeField] private GameObject characteristicsButton;
 
     private void Awake()
     {
@@ -37,14 +36,10 @@ public class ButtonStyler : MonoBehaviour
         {
             connectButton.GetComponent<MeshRenderer>().material = disabledState;
             disconnectButton.GetComponent<MeshRenderer>().material = disconnectState;
-        } else if (state == State.SERVICESELECTED)
-        {
-            characteristicsButton.GetComponent<MeshRenderer>().material = activeState;
-        } else if (state == State.DISCONNECTED)
+        }  else if (state == State.DISCONNECTED)
         {
             disconnectButton.GetComponent<MeshRenderer>().material = disabledState;
             enumerateButton.GetComponent<MeshRenderer>().material = disabledState;
-            characteristicsButton.GetComponent<MeshRenderer>().material = disabledState;
             connectButton.GetComponent<MeshRenderer>().material = connectState;
         }
     }
