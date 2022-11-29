@@ -67,12 +67,17 @@ public class NotificationManager : Singleton<NotificationManager>
                 "Well done, now you can click on connect button", false);
             return;
         }
-
         if (state == State.CONNECTED)
         {
             SetNewNotification(
                 "You are now successfully connected to "  +  BLEManager.Instance.GetDeviceName() + ", feel free to choose a service");
             return;
+        }
+        
+        if (state == State.SERVICESELECTED)
+        {
+            SetNewNotification(
+                "Don't forget to click on characteristics button to show the possibilities available to you");
         }
     }
 }

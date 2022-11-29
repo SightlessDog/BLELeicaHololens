@@ -109,7 +109,6 @@ public class ButtonHandlers : MonoBehaviour
         if (isScanningCharacteristics)
         {
             BleApi.Characteristic res = new BleApi.Characteristic();
-            Debug.Log("[DEBUG] EE characs");
             do
             {
                 status = BleApi.PollCharacteristic(out res, false);
@@ -184,7 +183,6 @@ public class ButtonHandlers : MonoBehaviour
         isScanningCharacteristics = true;
         isScanningServices = false;
         isScanningDevices = false;
-        characteristicsList = GameObject.Find("CharacteristicsGrid");
         foreach (Transform t in characteristicsList.transform)
         {
             if (t)
@@ -207,6 +205,7 @@ public class ButtonHandlers : MonoBehaviour
     {
         BLEManager.Instance.SetServiceId(data.name);
         GameObject.Find("Connect").GetComponent<Interactable>().enabled = false;
+        GameObject.Find("ShowCharacs").GetComponent<Interactable>().enabled = true;
         GameObject.Find("Disconnect").GetComponent<Interactable>().enabled = true;
         // If it's "disto" device then we need another way to deal with the data we get
         if (BLEManager.Instance.getServiceList()[data.name]["name"].ToUpper().Contains("DISTO"))
@@ -219,7 +218,7 @@ public class ButtonHandlers : MonoBehaviour
             BLEManager.Instance.setSubscribed(false);
             BLEManager.Instance.setCustomLeicaValue(false);
         }
-        ShowCharacteristics();
+        UpdateAppState(State.SERVICESELECTED);
     }
 
     public void SetCharacteristicId(GameObject data)

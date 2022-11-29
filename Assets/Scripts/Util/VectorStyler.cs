@@ -8,23 +8,26 @@ public class VectorStyler : MonoBehaviour
     private GameObject target;
     private bool hovered;
     private bool hoveredDone;
+    [SerializeField] private Material vectorInteracted;
+    [SerializeField] private Material defaultState;
     private void Update()
     {
         if (hovered)
         {
-            this.target.GetComponent<Renderer>().material.color = new Color(196, 104, 255, 197);
-            hovered = false;
+            target.GetComponent<MeshRenderer>().material = vectorInteracted;
+            target.transform.localScale = Vector3.Lerp(target.transform.localScale, new Vector3(1.1f, 1.1f, 1.1f), 0.01f);
         }
 
         if (hoveredDone)
         {
-            this.target.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 255);
-            hoveredDone = false;
+            target.GetComponent<MeshRenderer>().material = defaultState;
+            target.transform.localScale = Vector3.Lerp(target.transform.localScale, new Vector3(1f, 1f, 1f), 0.5f);
         }
     }
 
     public void onHover(GameObject target)
     {
+        hoveredDone = false;
         this.target = target;
         hovered = true;
     }
