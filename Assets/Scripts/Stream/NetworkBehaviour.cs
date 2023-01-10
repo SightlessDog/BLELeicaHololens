@@ -521,8 +521,6 @@ public class NetworkBehaviour : MonoBehaviour
                 }
                 Debug.Log($"transformUnityCamera: {TransformUnityCamera}");
 
-                Debug.Log("[DEBUG] EE position of the marker is " + marker.Position);
-
                 // Camera view transform used for transform chain
                 CameraToWorldUnity = GetViewToUnityTransform(_frameCoordinateSystem);
                 Debug.Log($"c2w_unity: {CameraToWorldUnity}");

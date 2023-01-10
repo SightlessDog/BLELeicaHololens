@@ -10149,6 +10149,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 594c3913309675145886ae4433b9c74f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  vectorInteracted: {fileID: 0}
+  defaultState: {fileID: 0}
 --- !u!1 &856105035
 GameObject:
   m_ObjectHideFlags: 0
@@ -26147,6 +26149,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Handlers
       objectReference: {fileID: 0}
+    - target: {fileID: 249471959387093211, guid: 5de8de71ea170b64587c85d14acd5024, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 249471959387093213, guid: 5de8de71ea170b64587c85d14acd5024, type: 3}
       propertyPath: m_RootOrder
       value: 3
@@ -26207,6 +26213,10 @@ PrefabInstance:
     - target: {fileID: 2231099273094269515, guid: f76b4953ccb5e7a4e8c644288bd32561, type: 3}
       propertyPath: m_Name
       value: NotificationManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 2231099273094269515, guid: f76b4953ccb5e7a4e8c644288bd32561, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2231099273094269516, guid: f76b4953ccb5e7a4e8c644288bd32561, type: 3}
       propertyPath: m_Camera
