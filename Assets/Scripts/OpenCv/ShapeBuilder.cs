@@ -53,7 +53,6 @@
          NotificationManager.Instance.SetNewNotification("Going to save the json file");
          Room room = new Room();
          List<Vector3> points = new List<Vector3>();
-         Debug.Log("EE for each");
          foreach (var m in measurements) 
          {
              points.Add(m.GetPoints()[0]);

@@ -460,6 +460,11 @@ PlayerSettings:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 6218185145667470595, guid: e41d395a03e020e4f87b51fb774de1c3, type: 2}
+  - {fileID: -7935872593298948495, guid: 6328b4517a91760428d6fcd9b3c92288, type: 2}
+  - {fileID: 0}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -941,7 +946,7 @@ PlayerSettings:
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   metroPackageName: com.island-labs.HOBLE
-  metroPackageVersion: 2.0.183.0
+  metroPackageVersion: 2.0.185.0
   metroCertificatePath: Assets/WSATestCertificate.pfx
   metroCertificatePassword: 
   metroCertificateSubject: Island Labs GmbH
