@@ -1,0 +1,6 @@
+[submodule "BleWinrtDll"]
+	path = BleWinrtDll
+	url = https://github.com/marianylund/BleWinrtDll
+[submodule "ArUcoDetectionHoloLens-Unity"]
+	path = ArUcoDetectionHoloLens-Unity
+	url = https://github.com/doughtmw/ArUcoDetectionHoloLens-Unity
